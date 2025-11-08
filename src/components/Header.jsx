@@ -34,19 +34,23 @@ export function Header() {
                 <img src={logo} alt="Pinocchio Shop" className="header-logo-img" style={{ height: '150px', width: '150px', objectFit: 'contain' }} />
               </div>
             </Link>
-            <button 
-              className="mobile-menu-btn"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle menu"
-              style={{ 
-                marginLeft: 'auto',
-                color: isHomePage ? '#ffffff' : '#111827'
-              }}
-            >
-              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="mobile-cart" style={{ display: 'none' }}>
+                <MiniCart />
+              </div>
+              <button 
+                className="mobile-menu-btn"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label="Toggle menu"
+                style={{ 
+                  color: isHomePage ? '#ffffff' : '#111827'
+                }}
+              >
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
           <nav className="nav desktop-nav" style={{ color: isHomePage ? '#ffffff' : '#111827' }}>
             {user && (
@@ -160,11 +164,6 @@ export function Header() {
                 >
                   {t('addProduct')}
                 </Link>
-              </div>
-              <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
-                <div style={{ width: '124px' }}>
-                  <MiniCart />
-                </div>
               </div>
               <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
                 <select value={lang} onChange={(e) => setLang(e.target.value)} className="lang-select" style={{ width: '124px', padding: '0.5rem 0.75rem', height: 'auto', fontSize: 'clamp(0.75rem, 2vw, 0.9rem)' }}>

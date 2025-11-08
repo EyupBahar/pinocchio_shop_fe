@@ -11,7 +11,7 @@ export function ProductPage() {
   const { id } = useParams();
   const { t } = useI18n();
   const fallbackProduct = useMemo(() => getProductById(id), [id]);
-  const { addItem } = useCart();
+  const { addItem, items, updateQuantity } = useCart();
   const [apiProduct, setApiProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [variantId, setVariantId] = useState(undefined);
@@ -69,6 +69,24 @@ export function ProductPage() {
   };
 
   const descriptionItems = descriptionText ? parseDescription(descriptionText) : null;
+
+  // Sepette bu ürünün olup olmadığını kontrol et
+  const currentVariantId = variantId || product?.variants?.[0]?.id || 'std';
+  const inCart = product?.id ? items.find((i) => i.id === product.id && i.variantId === currentVariantId) : null;
+
+  // Ürün sepete eklendiğinde veya variant değiştiğinde quantity'yi sepetteki miktara göre ayarla
+  // Sadece sepetteki miktar değiştiğinde ve quantity state'i farklıysa güncelle
+  useEffect(() => {
+    if (!product?.id) return;
+    if (inCart && inCart.quantity !== quantity) {
+      // Sadece sepetteki miktar quantity state'inden farklıysa güncelle
+      // Bu, başka bir yerden sepetteki miktar değiştiğinde çalışır
+      setQuantity(inCart.quantity);
+    } else if (!inCart && quantity !== 1) {
+      // Eğer ürün sepette değilse ve quantity 1 değilse, 1'e sıfırla
+      setQuantity(1);
+    }
+  }, [inCart?.quantity, currentVariantId, product?.id, quantity]); // Sadece sepetteki miktar veya variant değiştiğinde
 
   const toggleDropdown = (type) => {
     setOpenDropdown(prev => ({
@@ -289,7 +307,13 @@ export function ProductPage() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                onClick={() => {
+                  const newQuantity = Math.max(1, quantity - 1);
+                  setQuantity(newQuantity);
+                  if (inCart) {
+                    updateQuantity(product.id, currentVariantId, newQuantity);
+                  }
+                }}
                 className="btn"
                 style={{
                   minWidth: "2.5rem",
@@ -307,12 +331,24 @@ export function ProductPage() {
                 type="number"
                 min={1}
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                onChange={(e) => {
+                  const newQuantity = Math.max(1, Number(e.target.value));
+                  setQuantity(newQuantity);
+                  if (inCart) {
+                    updateQuantity(product.id, currentVariantId, newQuantity);
+                  }
+                }}
                 className="qty"
                 style={{ textAlign: "center", width: "4rem" }}
               />
               <button
-                onClick={() => setQuantity(quantity + 1)}
+                onClick={() => {
+                  const newQuantity = quantity + 1;
+                  setQuantity(newQuantity);
+                  if (inCart) {
+                    updateQuantity(product.id, currentVariantId, newQuantity);
+                  }
+                }}
                 className="btn"
                 style={{
                   minWidth: "2.5rem",
@@ -328,10 +364,17 @@ export function ProductPage() {
               </button>
             </div>
             <button
-              onClick={() => addItem(product, variantId || product?.variants?.[0]?.id || 'std', quantity)}
+              onClick={() => {
+                const finalVariantId = variantId || product?.variants?.[0]?.id || 'std';
+                if (inCart) {
+                  updateQuantity(product.id, finalVariantId, quantity);
+                } else {
+                  addItem(product, finalVariantId, quantity);
+                }
+              }}
               className="btn btn-primary"
             >
-              {t("addToCart")} — CHF {(product.price * quantity).toFixed(2)}
+              {inCart ? t("updateCart") : t("addToCart")} — CHF {(product.price * quantity).toFixed(2)}
             </button>
           </div>
         </div>

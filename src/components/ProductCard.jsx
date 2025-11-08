@@ -47,6 +47,9 @@ export function ProductCard({ product }) {
     if (!inCart) return
     if (inCart.quantity > 1) {
       updateQuantity(inCart.id, inCart.variantId, inCart.quantity - 1)
+    } else {
+      // Eğer miktar 1 ise, ürünü sepetten çıkar
+      removeItem(inCart.id, inCart.variantId)
     }
   }
 

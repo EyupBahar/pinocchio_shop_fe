@@ -125,6 +125,9 @@ img {
   .mobile-menu-btn {
     display: block;
   }
+  .mobile-cart {
+    display: block !important;
+  }
   .desktop-nav {
     display: none !important;
   }
@@ -244,16 +247,19 @@ img {
   border-radius: 0.375rem;
   background: #dc2626;
   color: #fff;
+  z-index: 20;
 }
 .badge-count {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  font-size: clamp(0.625rem, 1.5vw, 0.75rem);
-  padding: 0.25rem 0.5rem;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  padding: 0.4rem 0.7rem;
   border-radius: 0.375rem;
   background: #111827;
   color: #fff;
+  z-index: 20;
+  font-weight: 600;
 }
 
 /* Grid */
