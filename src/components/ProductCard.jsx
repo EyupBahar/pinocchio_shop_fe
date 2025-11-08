@@ -148,7 +148,7 @@ export function ProductCard({ product }) {
         flexDirection: 'column',
         minHeight: '180px'
       }}>
-        <div className="card-title" style={{ fontSize: "1.35rem", fontWeight: 700 }}>{product.title}</div>
+        <div className="card-title" style={{ fontSize: "clamp(1rem, 3vw, 1.35rem)", fontWeight: 700 }}>{product.title}</div>
         <div style={{ 
           margin: '0.5rem 0',
           minHeight: '24px',

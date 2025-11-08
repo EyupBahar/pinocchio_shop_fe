@@ -10,56 +10,44 @@ export function Footer() {
   const isHomePage = location.pathname === '/'
   return (
     <footer className="footer" style={{ background: 'transparent', minHeight: '90px' }}>
-      <div className="container footer-inner" style={{ maxWidth: '1216px', margin: '0 auto', padding: '1rem 2rem', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', position: 'relative', minHeight: '90px' }}>
-        {/* Sol alt köşedeki logo */}
+      <div className="container footer-inner" style={{ maxWidth: '1216px', margin: '0 auto', padding: '1rem 2rem', display: 'flex', flexDirection: 'column', position: 'relative', minHeight: '90px' }}>
+        {/* Üst satır: Logolar */}
         <div style={{ 
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.25rem'
+          display: 'flex', 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          width: '100%',
+          marginBottom: '1rem'
         }}>
-          <div style={{
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            overflow: 'hidden',
+          {/* Sol alt köşedeki logo */}
+          <div style={{ 
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            background: '#ffffff',
-            border: isHomePage ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #9B724C',
-            boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)'
+            gap: '0.25rem'
           }}>
-            <img src={logoFooter} alt="Pinocchio Shop" style={{ height: '80px', width: '80px', objectFit: 'contain' }} />
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#ffffff',
+              border: isHomePage ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #9B724C',
+              boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)'
+            }}>
+              <img src={logoFooter} alt="Pinocchio Shop" style={{ height: '80px', width: '80px', objectFit: 'contain' }} />
+            </div>
           </div>
-        </div>
-        
-        {/* Ortadaki metin */}
-        <div style={{ 
-          textAlign: 'center', 
-          color: '#9B724C', 
-          fontSize: '0.85rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          flex: 1
-        }}>
-          <span>©{new Date().getFullYear()} Pinocchio Shop</span>
-          <span>|</span>
-          <span>{t('terms')}</span>
-          <span>|</span>
-          <Link to="/datenschutz" style={{ color: '#9B724C', textDecoration: 'none' }}>{t('privacy')}</Link>
-          <span>|</span>
-          <Link to="/impressum" style={{ color: '#9B724C', textDecoration: 'none' }}>{t('imprint')}</Link>
-        </div>
-        
-        {/* Sağ alt köşedeki sosyal medya iconları */}
-        <div style={{ 
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.6rem'
-        }}>
+          
+          {/* Sağ alt köşedeki sosyal medya iconları */}
+          <div style={{ 
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.6rem'
+          }}>
           <a 
             href="https://www.instagram.com/pinocchiosaucen?igsh=NmVxeTFmYjlyZ2U3"
             target="_blank"
@@ -149,6 +137,28 @@ export function Footer() {
           >
             <FaFacebook size={22} />
           </a>
+          </div>
+        </div>
+        
+        {/* Alt satır: Ortadaki metinler - soldan sağa */}
+        <div style={{ 
+          color: '#9B724C', 
+          fontSize: 'clamp(0.7rem, 1.8vw, 0.85rem)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          flexWrap: 'wrap',
+          justifyContent: 'flex-start',
+          width: '100%',
+          paddingBottom: '10px'
+        }}>
+          <span>©{new Date().getFullYear()} Pinocchio Shop</span>
+          <span>|</span>
+          <span>{t('terms')}</span>
+          <span>|</span>
+          <Link to="/datenschutz" style={{ color: '#9B724C', textDecoration: 'none' }}>{t('privacy')}</Link>
+          <span>|</span>
+          <Link to="/impressum" style={{ color: '#9B724C', textDecoration: 'none' }}>{t('imprint')}</Link>
         </div>
       </div>
     </footer>

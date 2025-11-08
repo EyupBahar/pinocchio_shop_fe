@@ -11,7 +11,7 @@ export function MiniCart() {
 
   return (
     <div className="mini-cart">
-      <button onClick={() => setOpen((v) => !v)} className="btn" style={{ position: 'relative' }}>
+      <button onClick={() => setOpen((v) => !v)} className="btn" style={{ position: 'relative', width: '124px' }}>
         <div style={{ position: 'relative', display: 'inline-block' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="9" cy="21" r="1"></circle>

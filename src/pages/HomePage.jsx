@@ -31,8 +31,8 @@ export function HomePage() {
           title="Background Video"
         />
         <div className="container section" style={{ textAlign: 'center', paddingTop: 0 }}>
-          <h1 style={{ fontSize: '3rem', fontWeight: 800, letterSpacing: '-.025em', color: '#fff9c2', marginBottom: '1rem' }}>{t('heroTitle')}</h1>
-          <p style={{ marginTop: '1rem', color: '#fff9c2', fontSize: '1.3rem',  }}>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 6vw, 3rem)', fontWeight: 800, letterSpacing: '-.025em', color: '#fff9c2', marginBottom: '1rem' }}>{t('heroTitle')}</h1>
+          <p style={{ marginTop: '1rem', color: '#fff9c2', fontSize: 'clamp(0.9rem, 2.5vw, 1.3rem)' }}>
             {t('heroSubtitle')}
           </p>
           <div className="mt-8" style={{ marginTop: '2rem' }}>

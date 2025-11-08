@@ -16,18 +16,9 @@ export function Header() {
     <>
       <header className="header" style={{ background: isHomePage ? 'transparent' : '#ffffff', boxShadow: isHomePage ? 'none' : undefined }}>
         <div className="container header-inner">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button 
-              className="mobile-menu-btn"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
             <Link to="/" className="site-title" style={{ background: isHomePage ? 'transparent' : '#ffffff' }}>
-              <div style={{
+              <div className="header-logo" style={{
                 width: '100px',
                 height: '100px',
                 borderRadius: '50%',
@@ -40,16 +31,29 @@ export function Header() {
                 border: isHomePage ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #9B724C',
                 boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)'
               }}>
-                <img src={logo} alt="Pinocchio Shop" style={{ height: '150px', width: '150px', objectFit: 'contain' }} />
+                <img src={logo} alt="Pinocchio Shop" className="header-logo-img" style={{ height: '150px', width: '150px', objectFit: 'contain' }} />
               </div>
             </Link>
+            <button 
+              className="mobile-menu-btn"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+              style={{ 
+                marginLeft: 'auto',
+                color: isHomePage ? '#ffffff' : '#111827'
+              }}
+            >
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
           <nav className="nav desktop-nav" style={{ color: isHomePage ? '#ffffff' : '#111827' }}>
             {user && (
               <span style={{ 
                 padding: '0.5rem 1rem',
                 color: isHomePage ? '#FFF9C2' : '#111827',
-                fontSize: '0.9rem',
+                fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
                 height: '2.5rem',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -63,7 +67,7 @@ export function Header() {
                 to="/add-product" 
                 className="btn"
                 style={{ 
-                  fontSize: '0.9rem', 
+                  fontSize: 'clamp(0.75rem, 2vw, 0.9rem)', 
                   padding: '0.5rem 1rem',
                   height: '2.5rem',
                   display: 'inline-flex',
@@ -87,6 +91,25 @@ export function Header() {
               <Link to="/login" className="btn">{t('login')}</Link>
             )}
           </nav>
+          {/* Mobile Logo - küçük ve sağda */}
+          <div className="mobile-logo" style={{ display: 'none' }}>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '50%',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#ffffff',
+                border: isHomePage ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #9B724C',
+                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)'
+              }}>
+                <img src={logo} alt="Pinocchio Shop" style={{ height: '60px', width: '60px', objectFit: 'contain' }} />
+              </div>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -94,12 +117,12 @@ export function Header() {
       {isMobileMenuOpen && (
         <>
           <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>
-          <aside className="mobile-menu" style={{ background: isHomePage ? 'transparent' : '#ffffff' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-              <h3 style={{ color: isHomePage ? '#ffffff' : '#111827' }}>Menu</h3>
+          <aside className="mobile-menu" style={{ background: '#ffffff', zIndex: 101 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+              <h3 style={{ color: '#111827' }}>Menu</h3>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                style={{ background: 'none', border: 'none', color: isHomePage ? '#ffffff' : '#111827', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: '#111827', cursor: 'pointer' }}
               >
                 <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -110,39 +133,52 @@ export function Header() {
               {user && (
                 <div style={{ 
                   padding: '1rem',
-                  borderBottom: '1px solid rgba(255,255,255,0.2)',
-                  color: isHomePage ? '#FFF9C2' : '#111827'
+                  borderBottom: '1px solid #e5e7eb',
+                  color: '#111827'
                 }}>
                   Welcome {user.username}
                 </div>
               )}
-              <Link 
-                to="/add-product" 
-                style={{ 
-                  color: isHomePage ? '#ffffff' : '#111827',
-                  padding: '1rem',
-                  display: 'block',
-                  borderBottom: '1px solid rgba(255,255,255,0.2)'
-                }}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('addProduct')}
-              </Link>
-              <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                <MiniCart />
+              <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
+                <Link 
+                  to="/add-product" 
+                  className="btn"
+                  style={{ 
+                    color: '#ffffff',
+                    padding: '0.5rem 1rem',
+                    height: 'auto',
+                    display: 'block',
+                    background: '#9B724C',
+                    border: '1px solid #9B724C',
+                    borderRadius: '0.375rem',
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
+                    width: '124px'
+                  }}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('addProduct')}
+                </Link>
               </div>
-              <div style={{ padding: '1rem' }}>
-                <select value={lang} onChange={(e) => setLang(e.target.value)} className="lang-select">
+              <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={{ width: '124px' }}>
+                  <MiniCart />
+                </div>
+              </div>
+              <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
+                <select value={lang} onChange={(e) => setLang(e.target.value)} className="lang-select" style={{ width: '124px', padding: '0.5rem 0.75rem', height: 'auto', fontSize: 'clamp(0.75rem, 2vw, 0.9rem)' }}>
                   <option value="de">DE</option>
                   <option value="en">EN</option>
                   <option value="fr">FR</option>
+                  <option value="it">IT</option>
                 </select>
               </div>
-              <div style={{ padding: '1rem' }}>
+              <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
                 {user ? (
-                  <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="btn">{t('logout')}</button>
+                  <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="btn" style={{ color: '#ffffff', background: '#9B724C', border: '1px solid #9B724C', width: '124px', padding: '0.5rem 1rem', height: 'auto', fontSize: 'clamp(0.75rem, 2vw, 0.9rem)' }}>{t('logout')}</button>
                 ) : (
-                  <Link to="/login" className="btn" onClick={() => setIsMobileMenuOpen(false)}>{t('login')}</Link>
+                  <Link to="/login" className="btn" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', background: '#9B724C', border: '1px solid #9B724C', width: '124px', display: 'block', textAlign: 'center', textDecoration: 'none', padding: '0.5rem 1rem', height: 'auto', fontSize: 'clamp(0.75rem, 2vw, 0.9rem)' }}>{t('login')}</Link>
                 )}
               </div>
             </nav>

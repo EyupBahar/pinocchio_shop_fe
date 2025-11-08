@@ -100,7 +100,7 @@ export function ProductPage() {
           />
         </div>
         <div>
-          <h1 style={{ fontSize: "2.75rem", fontWeight: 700, margin: 0 }}>
+          <h1 style={{ fontSize: "clamp(1.5rem, 6vw, 2.75rem)", fontWeight: 700, margin: 0 }}>
             {product.title}
           </h1>
           {product.rating && product.rating > 0 && (
@@ -133,7 +133,7 @@ export function ProductPage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  fontSize: '1rem',
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
                   fontWeight: 500
                 }}
               >
@@ -180,7 +180,7 @@ export function ProductPage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  fontSize: '1rem',
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
                   fontWeight: 500
                 }}
               >
@@ -227,7 +227,7 @@ export function ProductPage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  fontSize: '1rem',
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
                   fontWeight: 500
                 }}
               >
@@ -262,7 +262,7 @@ export function ProductPage() {
           <div style={{ marginTop: "1.5rem" }}>
             <div
               className="text-muted"
-              style={{ fontSize: ".9rem", marginBottom: ".5rem" }}
+              style={{ fontSize: "clamp(0.75rem, 2vw, 0.9rem)", marginBottom: ".5rem" }}
             >
               {t("size")}
             </div>
@@ -298,7 +298,7 @@ export function ProductPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "1.2rem"
+                  fontSize: "clamp(1rem, 2.5vw, 1.2rem)"
                 }}
               >
                 −
@@ -321,7 +321,7 @@ export function ProductPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "1.2rem"
+                  fontSize: "clamp(1rem, 2.5vw, 1.2rem)"
                 }}
               >
                 +

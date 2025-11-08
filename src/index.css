@@ -15,6 +15,7 @@ body {
   background: #ffffff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: clamp(0.875rem, 2vw, 1rem);
 }
 
 a {
@@ -79,8 +80,8 @@ img {
   margin-bottom: 1.5rem;
 }
 .section-title h2 {
-  font-size: 1.5rem;
-  line-height: 2rem;
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
+  line-height: clamp(1.5rem, 4vw, 2rem);
   font-weight: 600;
   margin: 0;
   color: #9b724c;
@@ -127,6 +128,14 @@ img {
   .desktop-nav {
     display: none !important;
   }
+  .header-logo {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  .header-logo-img {
+    width: 100px !important;
+    height: 100px !important;
+  }
 }
 .site-title {
   display: flex;
@@ -140,7 +149,7 @@ img {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
   color: #111827;
 }
 .nav a {
@@ -161,7 +170,7 @@ img {
   background: #9B724C;
   color: #fff;
   height: 2.5rem;
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
 }
 .lang-select option {
   background: #fff;
@@ -211,7 +220,7 @@ img {
   background: #9B724C;
   color: #fff;
   height: 2.5rem;
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -230,7 +239,7 @@ img {
   position: absolute;
   top: 0.75rem;
   left: 3rem;
-  font-size: 0.75rem;
+  font-size: clamp(0.625rem, 1.5vw, 0.75rem);
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
   background: #dc2626;
@@ -240,7 +249,7 @@ img {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  font-size: 0.75rem;
+  font-size: clamp(0.625rem, 1.5vw, 0.75rem);
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
   background: #111827;
@@ -301,7 +310,7 @@ img {
 .card-sub {
   margin-top: 0.25rem;
   color: #6b7280;
-  font-size: 0.95rem;
+  font-size: clamp(0.8rem, 2vw, 0.95rem);
 }
 .card-row {
   display: flex;
@@ -329,7 +338,7 @@ img {
 .btn-icon-close {
   background: none !important;
   border: none !important;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
   cursor: pointer;
   color: #9B724C;
   padding: 0.25rem;
@@ -378,7 +387,7 @@ img {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
   margin-top: 1rem;
 }
 .select {
@@ -549,7 +558,7 @@ img {
   gap: 0.5rem;
   padding: 2rem 2rem;
   color: #ffffff;
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
 }
 @media (max-width: 768px) {
   .footer-inner {
