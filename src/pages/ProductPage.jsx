@@ -110,6 +110,7 @@ export function ProductPage() {
           <img
             src={product.image || product.imageUrl || product.picture}
             alt={product.title}
+            className="product-page-image"
             loading="lazy"
             onError={(e) => {
               e.currentTarget.src =

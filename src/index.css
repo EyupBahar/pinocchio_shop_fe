@@ -303,12 +303,17 @@ img {
   will-change: transform;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   transform-origin: center;
+  position: relative;
+  z-index: 1;
 }
 .card-image:hover {
   transform: scale(1.9);
 }
 .card-body {
   padding: 1rem;
+  position: relative;
+  z-index: 2;
+  background: #fff;
 }
 .card-title {
   font-family: 'retro sans-serif', sans-serif;
@@ -435,6 +440,21 @@ img {
   .product-layout {
     grid-template-columns: 1fr 1fr;
   }
+}
+.product-page-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  transform-origin: center;
+  cursor: pointer;
+}
+.product-page-image:hover {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+.product-page-image:not(:hover) {
+  transition: transform 0.15s ease;
 }
 .product-variants {
   display: flex;
