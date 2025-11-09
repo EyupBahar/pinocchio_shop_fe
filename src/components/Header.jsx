@@ -14,10 +14,10 @@ export function Header() {
 
   return (
     <>
-      <header className="header" style={{ background: isHomePage ? 'transparent' : '#ffffff', boxShadow: isHomePage ? 'none' : undefined }}>
+      <header className="header" style={{ background: '#ffffff', boxShadow: undefined }}>
         <div className="container header-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-            <Link to="/" className="site-title" style={{ background: isHomePage ? 'transparent' : '#ffffff' }}>
+            <Link to="/" className="site-title" style={{ background: '#ffffff' }}>
               <div className="header-logo" style={{
                 width: '100px',
                 height: '100px',
@@ -25,7 +25,7 @@ export function Header() {
                 overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
-                marginTop: isHomePage ? '20px' : undefined,
+                // marginTop: isHomePage ? '20px' : undefined,
                 justifyContent: 'center',
                 background: '#ffffff',
                 border: isHomePage ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #9B724C',
@@ -43,7 +43,7 @@ export function Header() {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 aria-label="Toggle menu"
                 style={{ 
-                  color: isHomePage ? '#ffffff' : '#111827'
+                  color: '#111827'
                 }}
               >
                 <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,11 +52,11 @@ export function Header() {
               </button>
             </div>
           </div>
-          <nav className="nav desktop-nav" style={{ color: isHomePage ? '#ffffff' : '#111827' }}>
+          <nav className="nav desktop-nav" style={{ color: '#111827' }}>
             {user && (
               <span style={{ 
                 padding: '0.5rem 1rem',
-                color: isHomePage ? '#FFF9C2' : '#111827',
+                color: '#111827',
                 fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
                 height: '2.5rem',
                 display: 'inline-flex',
@@ -66,7 +66,7 @@ export function Header() {
                 {t('welcome')} {user.username}
               </span>
             )}
-            <div style={{ color: isHomePage ? '#ffffff' : 'inherit', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Link 
                 to="/add-product" 
                 className="btn"

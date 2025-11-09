@@ -9,10 +9,10 @@ export function Footer() {
   const location = useLocation()
   const isHomePage = location.pathname === '/'
   return (
-    <footer className="footer" style={{ background: 'transparent', minHeight: '90px' }}>
+    <footer className="footer" style={{ background: '#ffffff', minHeight: '90px' }}>
       <div className="container footer-inner" style={{ maxWidth: '1216px', margin: '0 auto', padding: '1rem 2rem', display: 'flex', flexDirection: 'column', position: 'relative', minHeight: '90px' }}>
         {/* Üst satır: Logolar */}
-        <div style={{ 
+        <div className="footer-top-row" style={{ 
           display: 'flex', 
           flexDirection: 'row', 
           alignItems: 'center', 
@@ -40,6 +40,24 @@ export function Footer() {
             }}>
               <img src={logoFooter} alt="Pinocchio Shop" style={{ height: '80px', width: '80px', objectFit: 'contain' }} />
             </div>
+          </div>
+          
+          {/* Orta: Yazılar (büyük ekranda) */}
+          <div className="footer-text-desktop" style={{ 
+            color: '#9B724C', 
+            fontSize: 'clamp(0.7rem, 1.8vw, 0.85rem)',
+            display: 'none',
+            alignItems: 'center',
+            gap: '0.5rem',
+            flexWrap: 'wrap'
+          }}>
+            <span>©{new Date().getFullYear()} Pinocchio Shop</span>
+            <span>|</span>
+            <span>{t('terms')}</span>
+            <span>|</span>
+            <Link to="/datenschutz" style={{ color: '#9B724C', textDecoration: 'none' }}>{t('privacy')}</Link>
+            <span>|</span>
+            <Link to="/impressum" style={{ color: '#9B724C', textDecoration: 'none' }}>{t('imprint')}</Link>
           </div>
           
           {/* Sağ alt köşedeki sosyal medya iconları */}
@@ -140,8 +158,8 @@ export function Footer() {
           </div>
         </div>
         
-        {/* Alt satır: Ortadaki metinler - soldan sağa */}
-        <div style={{ 
+        {/* Alt satır: Ortadaki metinler - soldan sağa (mobil) */}
+        <div className="footer-text" style={{ 
           color: '#9B724C', 
           fontSize: 'clamp(0.7rem, 1.8vw, 0.85rem)',
           display: 'flex',

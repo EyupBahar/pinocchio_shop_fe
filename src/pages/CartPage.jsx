@@ -3,6 +3,7 @@ import { useI18n } from '../contexts/I18nContext.jsx'
 
 export function CartPage() {
   const { items, removeItem, updateQuantity, totals, clearCart } = useCart()
+  console.log("🚀 ~ CartPage ~ items:", items)
   const { t } = useI18n()
 
   return (
