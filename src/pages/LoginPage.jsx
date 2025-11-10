@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../services/authService.js'
 import { useI18n } from '../contexts/I18nContext.jsx'
+import { decodeToken } from '../services/api.js'
 
 export function LoginPage() {
   const { login, signInWithGoogle } = useAuth()
@@ -37,6 +38,23 @@ export function LoginPage() {
       document.cookie = `authToken=${encodeURIComponent(token)}; Path=/; Max-Age=${maxAge}; SameSite=Strict; Secure`
       localStorage.setItem('authToken', token)
 
+      // Decode token to get role information
+      const decodedToken = decodeToken(token)
+      let userRole = null
+      
+      // Check token for role information (Keycloak format)
+      if (decodedToken?.realm_access?.roles) {
+        // Check if Admin role exists in realm_access.roles
+        if (decodedToken.realm_access.roles.includes('Admin')) {
+          userRole = 'Admin'
+        } else if (decodedToken.realm_access.roles.includes('admin')) {
+          userRole = 'admin'
+        } else {
+          // Use first role if Admin not found
+          userRole = decodedToken.realm_access.roles[0] || null
+        }
+      }
+
       // Then fetch profile with that token
       let displayName = email
       const [profileRes] = await Promise.all([
@@ -44,8 +62,13 @@ export function LoginPage() {
       ])
       const p = profileRes?.data?.data || profileRes?.data || {}
       displayName = p.username || [p.firstName, p.lastName].filter(Boolean).join(' ') || p.name || email
-      const userRole = p.role || p.roles?.[0] || null
+      
+      // If role not found in token, try to get from profile
+      if (!userRole) {
+        userRole = p.role || p.roles?.[0] || null
+      }
 
+      console.log('User Role:', userRole, 'Token Roles:', decodedToken?.realm_access?.roles)
       login({ username: displayName, email, role: userRole })
       navigate('/')
     } catch (err) {

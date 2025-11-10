@@ -67,20 +67,22 @@ export function Header() {
               </span>
             )}
             <div style={{ color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Link 
-                to="/add-product" 
-                className="btn"
-                style={{ 
-                  fontSize: 'clamp(0.75rem, 2vw, 0.9rem)', 
-                  padding: '0.5rem 1rem',
-                  height: '2.5rem',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {t('addProduct')}
-              </Link>
+              {(user?.role === 'admin' || user?.role === 'Admin') && (
+                <Link 
+                  to="/add-product" 
+                  className="btn"
+                  style={{ 
+                    fontSize: 'clamp(0.75rem, 2vw, 0.9rem)', 
+                    padding: '0.5rem 1rem',
+                    height: '2.5rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {t('addProduct')}
+                </Link>
+              )}
               <MiniCart />
             </div>
             <select value={lang} onChange={(e) => setLang(e.target.value)} className="lang-select">
@@ -143,28 +145,30 @@ export function Header() {
                   Welcome {user.username}
                 </div>
               )}
-              <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
-                <Link 
-                  to="/add-product" 
-                  className="btn"
-                  style={{ 
-                    color: '#ffffff',
-                    padding: '0.5rem 1rem',
-                    height: 'auto',
-                    display: 'block',
-                    background: '#9B724C',
-                    border: '1px solid #9B724C',
-                    borderRadius: '0.375rem',
-                    textAlign: 'center',
-                    textDecoration: 'none',
-                    fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
-                    width: '124px'
-                  }}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('addProduct')}
-                </Link>
-              </div>
+              {(user?.role === 'admin' || user?.role === 'Admin') && (
+                <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
+                  <Link 
+                    to="/add-product" 
+                    className="btn"
+                    style={{ 
+                      color: '#ffffff',
+                      padding: '0.5rem 1rem',
+                      height: 'auto',
+                      display: 'block',
+                      background: '#9B724C',
+                      border: '1px solid #9B724C',
+                      borderRadius: '0.375rem',
+                      textAlign: 'center',
+                      textDecoration: 'none',
+                      fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
+                      width: '124px'
+                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t('addProduct')}
+                  </Link>
+                </div>
+              )}
               <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
                 <select value={lang} onChange={(e) => setLang(e.target.value)} className="lang-select" style={{ width: '124px', padding: '0.5rem 0.75rem', height: 'auto', fontSize: 'clamp(0.75rem, 2vw, 0.9rem)' }}>
                   <option value="de">DE</option>
