@@ -17,22 +17,22 @@ export function CartPage() {
             {items.map((i) => (
               <div key={`${i.id}-${i.variantId}`} className="cart-item">
                 <div className="cart-thumb"><img src={i.image} alt={i.title} className="block w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Image'; }} /></div>
-                <div style={{ flex: 1 }}>
-                  <div className="font-medium">{i.title}</div>
-                  <div className="text-sm text-neutral-600">{i.variantId}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="font-medium" style={{ fontSize: 'clamp(0.9rem, 2vw, 1rem)' }}>{i.title}</div>
+                  <div className="text-sm text-neutral-600" style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)' }}>{i.variantId}</div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                   <button
                     onClick={() => updateQuantity(i.id, i.variantId, Math.max(1, i.quantity - 1))}
                     className="btn"
                     style={{
-                      minWidth: "2.5rem",
-                      height: "2.5rem",
+                      minWidth: "clamp(2rem, 5vw, 2.5rem)",
+                      height: "clamp(2rem, 5vw, 2.5rem)",
                       padding: "0",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "1.2rem"
+                      fontSize: "clamp(1rem, 3vw, 1.2rem)"
                     }}
                   >
                     −
@@ -43,26 +43,26 @@ export function CartPage() {
                     value={i.quantity}
                     onChange={(e) => updateQuantity(i.id, i.variantId, Math.max(1, Number(e.target.value)))}
                     className="qty"
-                    style={{ textAlign: "center", width: "4rem" }}
+                    style={{ textAlign: "center", width: "clamp(3rem, 8vw, 4rem)", fontSize: 'clamp(0.875rem, 2vw, 1rem)' }}
                   />
                   <button
                     onClick={() => updateQuantity(i.id, i.variantId, i.quantity + 1)}
                     className="btn"
                     style={{
-                      minWidth: "2.5rem",
-                      height: "2.5rem",
+                      minWidth: "clamp(2rem, 5vw, 2.5rem)",
+                      height: "clamp(2rem, 5vw, 2.5rem)",
                       padding: "0",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "1.2rem"
+                      fontSize: "clamp(1rem, 3vw, 1.2rem)"
                     }}
                   >
                     +
                   </button>
                 </div>
                 <div className="cart-price">CHF {(i.price * i.quantity).toFixed(2)}</div>
-                <button onClick={() => removeItem(i.id, i.variantId)} className="btn">{t('removeFromCart')}</button>
+                <button onClick={() => removeItem(i.id, i.variantId)} className="btn" style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', padding: 'clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.75rem, 2vw, 1rem)' }}>{t('removeFromCart')}</button>
               </div>
             ))}
           </div>

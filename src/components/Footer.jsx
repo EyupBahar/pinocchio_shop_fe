@@ -35,7 +35,7 @@ export function Footer() {
               alignItems: 'center',
               justifyContent: 'center',
               background: '#ffffff',
-              border: isHomePage ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #9B724C',
+              border: '2px solid #9B724C',
               boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)'
             }}>
               <img src={logoFooter} alt="Pinocchio Shop" style={{ height: '80px', width: '80px', objectFit: 'contain' }} />

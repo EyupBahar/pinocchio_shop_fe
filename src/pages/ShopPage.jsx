@@ -56,7 +56,6 @@ export function ShopPage() {
       return matches
     })
     
-    console.log('🔍 Filtered products:', filteredProducts)
     return filteredProducts
   }, [activeCategory, apiProducts])
 
