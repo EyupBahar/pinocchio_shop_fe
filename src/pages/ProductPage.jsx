@@ -6,6 +6,13 @@ import { useI18n } from "../contexts/I18nContext.jsx";
 import { StarRating } from "../components/StarRating.jsx";
 import { productService } from "../services/productService.js";
 import { FaAngleDown } from "react-icons/fa";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Thumbs } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import bamosCert1 from '../assets/Bamos_zertifikat.png';
+import bamosCert2 from '../assets/Bamos_zertifikat_2.png';
 
 export function ProductPage() {
   const { id } = useParams();
@@ -21,6 +28,7 @@ export function ProductPage() {
     shipmentFeatures: false,
     deliveryFeatures: false
   });
+  const [thumbsSwiper, setThumbsSwiper] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -70,6 +78,11 @@ export function ProductPage() {
 
   const descriptionItems = descriptionText ? parseDescription(descriptionText) : null;
 
+  // Prepare images array (main image + additional images)
+  const mainImage = product?.image || product?.imageUrl || product?.picture;
+  const additionalImages = product?.images || [];
+  const allImages = [mainImage, ...additionalImages].filter(Boolean);
+
   // Sepette bu ürünün olup olmadığını kontrol et
   const currentVariantId = variantId || product?.variants?.[0]?.id || 'std';
   const inCart = product?.id ? items.find((i) => i.id === product.id && i.variantId === currentVariantId) : null;
@@ -107,16 +120,94 @@ export function ProductPage() {
     <div className="container section">
       <div className="product-layout">
         <div style={{ borderRadius: ".5rem", overflow: "hidden" }}>
-          <img
-            src={product.image || product.imageUrl || product.picture}
-            alt={product.title}
-            className="product-page-image"
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.src =
-                "https://via.placeholder.com/1200x900?text=Image";
-            }}
-          />
+          {allImages.length > 1 ? (
+            <div style={{ width: '100%' }}>
+              {/* Main Slider */}
+              <Swiper
+                spaceBetween={10}
+                navigation={true}
+                pagination={{ clickable: true }}
+                thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
+                modules={[Navigation, Pagination, Thumbs]}
+                className="product-image-swiper"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  marginBottom: '1rem'
+                }}
+              >
+                {allImages.map((img, index) => (
+                  <SwiperSlide key={index}>
+                    <img
+                      src={img}
+                      alt={`${product.title} - ${index + 1}`}
+                      className="product-page-image"
+                      loading="lazy"
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        objectFit: 'cover',
+                        display: 'block'
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://via.placeholder.com/1200x900?text=Image";
+                      }}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+              
+              {/* Thumbnails Slider */}
+              <Swiper
+                onSwiper={setThumbsSwiper}
+                spaceBetween={10}
+                slidesPerView={4}
+                navigation={allImages.length > 4}
+                freeMode={true}
+                watchSlidesProgress={true}
+                modules={[Thumbs, Navigation]}
+                className="product-thumbs-swiper"
+                style={{
+                  width: '100%',
+                  height: 'auto'
+                }}
+              >
+                {allImages.map((img, index) => (
+                  <SwiperSlide key={index}>
+                    <img
+                      src={img}
+                      alt={`${product.title} thumbnail ${index + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100px',
+                        objectFit: 'cover',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        border: '2px solid transparent',
+                        transition: 'border-color 0.2s'
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://via.placeholder.com/150x100?text=Image";
+                      }}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          ) : (
+            <img
+              src={mainImage}
+              alt={product.title}
+              className="product-page-image"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.src =
+                  "https://via.placeholder.com/1200x900?text=Image";
+              }}
+            />
+          )}
         </div>
         <div>
           <h1 style={{ fontSize: "clamp(1.5rem, 6vw, 2.75rem)", fontWeight: 700, margin: 0 }}>
@@ -380,6 +471,55 @@ export function ProductPage() {
           </div>
         </div>
       </div>
+
+      {/* BAMOS Certificate for Canakkale Domates - Separate Section */}
+      {(product?.title?.toLowerCase().includes('canakkale') || product?.title?.toLowerCase().includes('domates')) && (
+        <div style={{ marginTop: '3rem', width: '100%' }}>
+          <h3 style={{ fontSize: 'clamp(1rem, 2.5vw, 1.25rem)', fontWeight: 600, marginBottom: '1rem', color: '#111827' }}>
+            BAMOS Zertifikat
+          </h3>
+          <div className="bamos-certificates-grid">
+            <div style={{
+              width: '100%',
+              border: '1px solid #e5e7eb',
+              borderRadius: '0.5rem',
+              overflow: 'hidden',
+              background: '#fff'
+            }}>
+              <img
+                src={bamosCert1}
+                alt="BAMOS Zertifikat 1"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  objectFit: 'contain'
+                }}
+                loading="lazy"
+              />
+            </div>
+            <div style={{
+              width: '100%',
+              border: '1px solid #e5e7eb',
+              borderRadius: '0.5rem',
+              overflow: 'hidden',
+              background: '#fff'
+            }}>
+              <img
+                src={bamosCert2}
+                alt="BAMOS Zertifikat 2"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  objectFit: 'contain'
+                }}
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

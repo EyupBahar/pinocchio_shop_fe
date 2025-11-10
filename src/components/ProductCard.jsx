@@ -5,6 +5,11 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
 import { productService } from '../services/productService.js'
 import { StarRating } from './StarRating.jsx'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Navigation, Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 
 export function ProductCard({ product }) {
   const { items, addItem, removeItem, updateQuantity } = useCart()
@@ -14,6 +19,13 @@ export function ProductCard({ product }) {
   const inCart = items.find((i) => i.id === product.id)
   const [transformOrigin, setTransformOrigin] = useState('50% 50%')
   const imgRef = useRef(null)
+  const [swiperInstance, setSwiperInstance] = useState(null)
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
+
+  // Prepare images array (main image + additional images)
+  const mainImage = product.image || product.imageUrl || product.picture
+  const additionalImages = product.images || []
+  const allImages = [mainImage, ...additionalImages].filter(Boolean)
 
   const handleMouseMove = (e) => {
     if (!imgRef.current) return
@@ -135,17 +147,69 @@ export function ProductCard({ product }) {
             </button>
           </div>
         )}
-      <img 
-        ref={imgRef}
-        src={product.image || product.imageUrl || product.picture} 
-        alt={product.title} 
-        className="card-image" 
-        loading="lazy" 
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{ transformOrigin }}
-        onError={(e) => { e.currentTarget.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3lrmoVDM2ATvfF3ervXOmT65AGCZf28L4gg&s'; }} 
-      />
+      {allImages.length > 1 ? (
+        <div
+          onClick={(e) => {
+            // Son slide'da tıklanırsa detay sayfasına git
+            if (currentSlideIndex === allImages.length - 1) {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(`/product/${product.id}`)
+            }
+          }}
+          style={{ cursor: currentSlideIndex === allImages.length - 1 ? 'pointer' : 'default' }}
+        >
+          <Swiper
+            onSwiper={setSwiperInstance}
+            spaceBetween={0}
+            navigation={true}
+            pagination={{ clickable: true, dynamicBullets: true }}
+            loop={true}
+            modules={[Navigation, Pagination]}
+            className="card-image-swiper"
+            style={{
+              width: '100%',
+              height: '14rem'
+            }}
+            onSlideChange={(swiper) => {
+              setCurrentSlideIndex(swiper.realIndex)
+            }}
+          >
+            {allImages.map((img, index) => (
+              <SwiperSlide key={index}>
+                <img
+                  src={img}
+                  alt={`${product.title} - ${index + 1}`}
+                  className="card-image"
+                  loading="lazy"
+                  style={{
+                    width: '100%',
+                    height: '14rem',
+                    objectFit: 'cover',
+                    display: 'block',
+                    transformOrigin: 'center'
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3lrmoVDM2ATvfF3ervXOmT65AGCZf28L4gg&s'
+                  }}
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+      ) : (
+        <img 
+          ref={imgRef}
+          src={mainImage} 
+          alt={product.title} 
+          className="card-image" 
+          loading="lazy" 
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          style={{ transformOrigin }}
+          onError={(e) => { e.currentTarget.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3lrmoVDM2ATvfF3ervXOmT65AGCZf28L4gg&s'; }} 
+        />
+      )}
       <div className="card-body" style={{ 
         display: 'flex', 
         flexDirection: 'column',
@@ -154,15 +218,18 @@ export function ProductCard({ product }) {
         <div className="card-title" style={{ fontSize: "clamp(1rem, 3vw, 1.35rem)", fontWeight: 700 }}>{product.title}</div>
         <div style={{ 
           margin: '0.5rem 0',
+          height: '24px',
           minHeight: '24px',
           display: 'flex',
           alignItems: 'center'
         }}>
-          {product.rating && product.rating > 0 && (
+          {product.rating && product.rating > 0 ? (
             <StarRating rating={product.rating} size="small" />
+          ) : (
+            <div style={{ height: '24px', width: '100%' }}></div>
           )}
         </div>
-        <div className="card-sub">{t('priceFrom')} {Number(product.price).toFixed(2)}</div>
+        <div className="card-sub" style={{ marginTop: '0.25rem' }}>{t('priceFrom')} {Number(product.price).toFixed(2)}</div>
         <div className="card-row" style={{ marginTop: 'auto', paddingTop: '0.75rem' }}>
           <div className="price">CHF {Number(product.price).toFixed(2)}</div>
           <div style={{ display: 'flex', gap: '.5rem' }}>
