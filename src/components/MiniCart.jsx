@@ -100,7 +100,25 @@ export function MiniCart() {
             <div style={{ fontWeight: 600 }}>CHF {totals.subtotal.toFixed(2)}</div>
           </div>
           <div style={{ padding: '0 1rem 1rem 1rem' }}>
-            <Link to="/cart" onClick={() => setOpen(false)} className="btn btn-primary" style={{ display: 'inline-flex', justifyContent: 'center', width: '100%' }}>
+            <Link 
+              to="/checkout" 
+              onClick={() => {
+                if (items.length === 0) {
+                  console.warn('⚠️ Sepet boş, checkout sayfasına gidilemiyor')
+                  return
+                }
+                setOpen(false)
+              }} 
+              className="btn btn-primary" 
+              style={{ 
+                display: 'inline-flex', 
+                justifyContent: 'center', 
+                width: '100%',
+                opacity: items.length === 0 ? 0.5 : 1,
+                pointerEvents: items.length === 0 ? 'none' : 'auto',
+                cursor: items.length === 0 ? 'not-allowed' : 'pointer'
+              }}
+            >
               {t('checkout')}
             </Link>
           </div>

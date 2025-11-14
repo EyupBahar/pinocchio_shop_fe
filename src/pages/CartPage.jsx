@@ -1,10 +1,11 @@
 import { useCart } from '../contexts/CartContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
+import { useNavigate } from 'react-router-dom'
 
 export function CartPage() {
   const { items, removeItem, updateQuantity, totals, clearCart } = useCart()
-  console.log("🚀 ~ CartPage ~ items:", items)
   const { t } = useI18n()
+  const navigate = useNavigate()
 
   return (
     <div className="container section">
@@ -71,7 +72,20 @@ export function CartPage() {
               <span>{t('subtotal')}</span>
               <span>CHF {totals.subtotal.toFixed(2)}</span>
             </div>
-            <button onClick={clearCart} className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>{t('checkout')}</button>
+            <button 
+              onClick={() => {
+                if (items.length === 0) {
+                  console.warn('⚠️ Sepet boş, checkout sayfasına gidilemiyor')
+                  return
+                }
+                navigate('/checkout')
+              }} 
+              className="btn btn-primary" 
+              style={{ width: '100%', marginTop: '1rem' }}
+              disabled={items.length === 0}
+            >
+              {t('checkout')}
+            </button>
           </aside>
         </div>
       )}

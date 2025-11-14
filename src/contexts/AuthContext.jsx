@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { isTokenExpired, getTokenExpirationTime, decodeToken } from '../services/api.js'
+import { authService } from '../services/authService.js'
 
-const AuthContext = createContext()
+const AuthContext = createContext(undefined)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -74,44 +75,124 @@ export function AuthProvider({ children }) {
     const savedUser = localStorage.getItem('user')
     const token = getToken()
 
-    // Check if token exists and is valid
-    if (token && !isTokenExpired(token)) {
-      // Decode token to get role information
-      const decodedToken = decodeToken(token)
-      let userRole = null
-      
-      // Check token for role information (Keycloak format)
-      if (decodedToken?.realm_access?.roles) {
-        // Check if Admin role exists in realm_access.roles
-        if (decodedToken.realm_access.roles.includes('Admin')) {
-          userRole = 'Admin'
-        } else if (decodedToken.realm_access.roles.includes('admin')) {
-          userRole = 'admin'
-        } else {
-          // Use first role if Admin not found
-          userRole = decodedToken.realm_access.roles[0] || null
+    const loadUserFromToken = async () => {
+      // Check if token exists and is valid
+      if (token && !isTokenExpired(token)) {
+        // Decode token to get role information
+        const decodedToken = decodeToken(token)
+        let userRole = null
+        
+        // Check token for role information (Keycloak format)
+        if (decodedToken?.realm_access?.roles) {
+          // Check if Admin role exists in realm_access.roles
+          if (decodedToken.realm_access.roles.includes('Admin')) {
+            userRole = 'Admin'
+          } else if (decodedToken.realm_access.roles.includes('admin')) {
+            userRole = 'admin'
+          } else {
+            // Use first role if Admin not found
+            userRole = decodedToken.realm_access.roles[0] || null
+          }
         }
-      }
 
-      if (savedUser) {
-        const userData = JSON.parse(savedUser)
-        // Update role from token if available
-        if (userRole) {
-          userData.role = userRole
-          setUser(userData)
-          localStorage.setItem('user', JSON.stringify(userData))
+        if (savedUser) {
+          const userData = JSON.parse(savedUser)
+          // Update role from token if available
+          if (userRole) {
+            userData.role = userRole
+            setUser(userData)
+            localStorage.setItem('user', JSON.stringify(userData))
+          } else {
+            setUser(userData)
+          }
         } else {
-          setUser(userData)
+          // Token var ama localStorage'da user yok - token'dan veya API'den user bilgisini al
+          console.log('🔍 Token var ama localStorage\'da user yok, API\'den alınıyor...')
+          
+          // Try to get userId from token first
+          let userId = decodedToken?.sub || decodedToken?.userId || decodedToken?.user_id || decodedToken?.id || decodedToken?.nameid || null
+          if (userId) {
+            userId = typeof userId === 'number' 
+              ? userId 
+              : (typeof userId === 'string' && !isNaN(parseInt(userId)) && !userId.includes('-'))
+                ? parseInt(userId, 10) 
+                : userId
+          }
+          
+          try {
+            const profileRes = await authService.getProfile(token)
+            const profile = profileRes?.data?.data || profileRes?.data || {}
+            const displayName = profile.username || [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.name || profile.email || decodedToken?.email || decodedToken?.preferred_username || 'User'
+            const email = profile.email || decodedToken?.email || ''
+            
+            // If userId not found in token, try to get from profile
+            if (!userId) {
+              const idFromProfile = profile.id || profile.userId || profile.user_id || profile.sub || null
+              if (idFromProfile) {
+                userId = typeof idFromProfile === 'number' 
+                  ? idFromProfile 
+                  : (typeof idFromProfile === 'string' && !isNaN(parseInt(idFromProfile)) && !idFromProfile.includes('-'))
+                    ? parseInt(idFromProfile, 10) 
+                    : idFromProfile
+              }
+            }
+            
+            // If role not found in token, try to get from profile
+            if (!userRole) {
+              userRole = profile.role || profile.roles?.[0] || null
+            }
+            
+            const userData = { 
+              username: displayName, 
+              email: email,
+              role: userRole,
+              userId: userId
+            }
+            setUser(userData)
+            localStorage.setItem('user', JSON.stringify(userData))
+            console.log('✅ User bilgisi API\'den alındı:', userData)
+          } catch (err) {
+            console.error('❌ Profile API hatası:', err)
+            // Token'dan minimal user bilgisi oluştur
+            const email = decodedToken?.email || decodedToken?.preferred_username || ''
+            const username = decodedToken?.name || decodedToken?.preferred_username || email || 'User'
+            
+            // If userId not found yet, try from token
+            if (!userId) {
+              userId = decodedToken?.sub || decodedToken?.userId || decodedToken?.user_id || decodedToken?.id || decodedToken?.nameid || null
+              if (userId) {
+                userId = typeof userId === 'number' 
+                  ? userId 
+                  : (typeof userId === 'string' && !isNaN(parseInt(userId)) && !userId.includes('-'))
+                    ? parseInt(userId, 10) 
+                    : userId
+              }
+            }
+            
+            const userData = { 
+              username: username, 
+              email: email,
+              role: userRole,
+              userId: userId
+            }
+            setUser(userData)
+            localStorage.setItem('user', JSON.stringify(userData))
+            console.log('✅ User bilgisi token\'dan oluşturuldu:', userData)
+          }
         }
+        // Set up periodic token check
+        setupTokenCheck()
+      } else if (token && isTokenExpired(token)) {
+        // Token expired, clear everything
+        logout()
+      } else {
+        setIsLoading(false)
       }
-      // Set up periodic token check
-      setupTokenCheck()
-    } else if (token && isTokenExpired(token)) {
-      // Token expired, clear everything
-      logout()
     }
 
-    setIsLoading(false)
+    loadUserFromToken().finally(() => {
+      setIsLoading(false)
+    })
 
     // Listen for token expiration events from API interceptor
     const handleTokenExpired = () => {
@@ -156,8 +237,11 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
+  if (context === undefined) {
+    throw new Error(
+      'useAuth must be used within AuthProvider. ' +
+      'Make sure AuthProvider wraps your component tree in main.jsx'
+    )
   }
   return context
 }

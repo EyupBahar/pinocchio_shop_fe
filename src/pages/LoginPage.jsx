@@ -31,8 +31,17 @@ export function LoginPage() {
     setError('')
     try {
       const res = await authService.login({ email, password })
+      console.log('🔍 Login API Response:', res?.data)
+      
       const token = res?.data?.accessToken || res?.data?.data?.accessToken
       if (!token) throw new Error('Token missing in login response')
+      
+      // Get customerId from login response (highest priority)
+      let userId = res?.data?.customerId || res?.data?.data?.customerId || res?.data?.customer_id || res?.data?.data?.customer_id || null
+      if (userId) {
+        console.log('✅ UserId (customerId) from login response:', userId, 'Type:', typeof userId)
+      }
+      
       // Persist token first
       const maxAge = 60 * 60 * 24 * 7
       document.cookie = `authToken=${encodeURIComponent(token)}; Path=/; Max-Age=${maxAge}; SameSite=Strict; Secure`
@@ -41,6 +50,21 @@ export function LoginPage() {
       // Decode token to get role information
       const decodedToken = decodeToken(token)
       let userRole = null
+      
+      // If userId not found in login response, try to get from token
+      if (!userId) {
+        userId = decodedToken?.sub || decodedToken?.userId || decodedToken?.user_id || decodedToken?.id || decodedToken?.nameid || null
+        if (userId) {
+          // GUID formatında ise (string), olduğu gibi bırak
+          // Number ise, number olarak gönder
+          userId = typeof userId === 'number' 
+            ? userId 
+            : (typeof userId === 'string' && !isNaN(parseInt(userId)) && !userId.includes('-'))
+              ? parseInt(userId, 10) 
+              : userId // GUID veya string olarak kal
+          console.log('✅ UserId from token:', userId, 'Type:', typeof userId)
+        }
+      }
       
       // Check token for role information (Keycloak format)
       if (decodedToken?.realm_access?.roles) {
@@ -61,15 +85,30 @@ export function LoginPage() {
         authService.getProfile(token)
       ])
       const p = profileRes?.data?.data || profileRes?.data || {}
+      console.log('🔍 Login - Profile data:', p)
       displayName = p.username || [p.firstName, p.lastName].filter(Boolean).join(' ') || p.name || email
+      
+      // If userId not found in token, try to get from profile
+      if (!userId) {
+        const idFromProfile = p.id || p.userId || p.user_id || p.sub || null
+        if (idFromProfile) {
+          userId = typeof idFromProfile === 'number' 
+            ? idFromProfile 
+            : (typeof idFromProfile === 'string' && !isNaN(parseInt(idFromProfile)) && !idFromProfile.includes('-'))
+              ? parseInt(idFromProfile, 10) 
+              : idFromProfile // GUID veya string olarak kal
+          console.log('✅ UserId from profile:', userId, 'Type:', typeof userId)
+        }
+      }
       
       // If role not found in token, try to get from profile
       if (!userRole) {
         userRole = p.role || p.roles?.[0] || null
       }
 
-      console.log('User Role:', userRole, 'Token Roles:', decodedToken?.realm_access?.roles)
-      login({ username: displayName, email, role: userRole })
+      console.log('✅ Login - User Role:', userRole, 'Token Roles:', decodedToken?.realm_access?.roles)
+      console.log('✅ Login - UserId:', userId, 'Type:', typeof userId)
+      login({ username: displayName, email, role: userRole, userId: userId })
       navigate('/')
     } catch (err) {
       console.error('Login error:', err)

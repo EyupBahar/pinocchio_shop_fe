@@ -1,45 +1,37 @@
 import apiClient from './api.js'
 
-function getTokenFromCookie(name = 'authToken') {
-  if (typeof document === 'undefined') return null
-  const cookies = document.cookie ? document.cookie.split('; ') : []
-  for (const c of cookies) {
-    const [k, v] = c.split('=')
-    if (k === name) return decodeURIComponent(v)
-  }
-  return null
-}
+// Note: Token handling is done automatically by apiClient interceptor
+// No need to manually add Authorization headers here
 
 export const productService = {
   // Get all products
+  // Note: Authorization header is automatically added by apiClient interceptor
   getAll: () => {
-    const token = getTokenFromCookie('authToken') || localStorage.getItem('authToken')
-    const headers = token ? { Authorization: `Bearer ${token}` } : {}
-    return apiClient.get('/Shop/Products/GetAll', { headers })
+    return apiClient.get('/Shop/Products/GetAll')
   },
 
   // Get product by ID
+  // Note: Authorization header is automatically added by apiClient interceptor
   getById: (id) => {
-    const token = getTokenFromCookie('authToken') || localStorage.getItem('authToken')
-    const headers = token ? { Authorization: `Bearer ${token}` } : {}
-    return apiClient.get(`/Shop/Products/${id}/GetDetail`, { headers })
+    return apiClient.get(`/Shop/Products/${id}/GetDetail`)
   },
 
   // Create product
+  // Note: Authorization header is automatically added by apiClient interceptor
   create: (productData) => {
     return apiClient.post('/Shop/Products/Create', productData)
   },
 
   // Update product
+  // Note: Authorization header is automatically added by apiClient interceptor
   update: (id, productData) => {
     return apiClient.put(`/Shop/Products/${id}/Update`, productData)
   },
 
   // Delete product
+  // Note: Authorization header is automatically added by apiClient interceptor
   delete: (id) => {
-    const token = getTokenFromCookie('authToken') || localStorage.getItem('authToken')
-    const headers = token ? { Authorization: `Bearer ${token}` } : {}
-    return apiClient.delete(`/Shop/Products/${id}/Delete`, { headers })
+    return apiClient.delete(`/Shop/Products/${id}/Delete`)
   },
 }
 

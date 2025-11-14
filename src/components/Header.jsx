@@ -1,16 +1,28 @@
 import { useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext.jsx'
-import { MiniCart } from './MiniCart.jsx'
+import { useCart } from '../contexts/CartContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
+import { MdOutlineShoppingCart, MdAssignmentAdd, MdLanguage } from "react-icons/md"
+import { FaUserAlt } from "react-icons/fa"
 import logo from '../assets/neu_logo.svg'
+import centerLogo from '../assets/center_logo.svg'
 
 export function Header() {
   const { user, logout } = useAuth()
+  const { items } = useCart()
   const { lang, setLang, t } = useI18n()
-  const location = useLocation()
-  const isHomePage = location.pathname === '/'
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false)
+  const cartCount = items.reduce((s, i) => s + i.quantity, 0)
+  
+  const languages = [
+    { code: 'de', label: 'DE' },
+    { code: 'en', label: 'EN' },
+    { code: 'fr', label: 'FR' },
+    { code: 'it', label: 'IT' }
+  ]
+
 
   return (
     <>
@@ -19,8 +31,8 @@ export function Header() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
             <Link to="/" className="site-title" style={{ background: '#ffffff' }}>
               <div className="header-logo" style={{
-                width: '100px',
-                height: '100px',
+                width: '60px',
+                height: '60px',
                 borderRadius: '50%',
                 overflow: 'hidden',
                 display: 'flex',
@@ -31,13 +43,20 @@ export function Header() {
                 border: '2px solid #9B724C',
                 boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)'
               }}>
-                <img src={logo} alt="Pinocchio Shop" className="header-logo-img" style={{ height: '150px', width: '150px', objectFit: 'contain' }} />
+                <img src={logo} alt="Pinocchio Shop" className="header-logo-img" style={{ height: '60px', width: '60px', objectFit: 'contain' }} />
               </div>
             </Link>
+            <img 
+              src={centerLogo} 
+              alt="Center Logo" 
+              style={{ 
+                height: '200px', 
+                width: 'auto', 
+                objectFit: 'contain',
+                margin: '0 1rem'
+              }} 
+            />
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div className="mobile-cart" style={{ display: 'none' }}>
-                <MiniCart />
-              </div>
               <button 
                 className="mobile-menu-btn"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -52,49 +71,188 @@ export function Header() {
               </button>
             </div>
           </div>
-          <nav className="nav desktop-nav" style={{ color: '#111827' }}>
+          <nav className="nav desktop-nav" style={{ color: '#111827', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {user && (
-              <span style={{ 
-                padding: '0.5rem 1rem',
-                color: '#111827',
-                fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
-                height: '2.5rem',
-                display: 'inline-flex',
-                alignItems: 'center',
-                fontWeight: 500
-              }}>
-                {t('welcome')} {user.username}
-              </span>
+              <>
+                <Link 
+                  to="/my-orders" 
+                  style={{ 
+                    fontSize: 'clamp(0.75rem, 2vw, 0.9rem)', 
+                    padding: '0.5rem 1rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    whiteSpace: 'nowrap',
+                    color: '#9B724C',
+                    textDecoration: 'none',
+                    fontWeight: 500
+                  }}
+                >
+                  {t('myOrdersLink')}
+                </Link>
+              </>
             )}
             <div style={{ color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               {(user?.role === 'admin' || user?.role === 'Admin') && (
                 <Link 
                   to="/add-product" 
-                  className="btn"
                   style={{ 
-                    fontSize: 'clamp(0.75rem, 2vw, 0.9rem)', 
-                    padding: '0.5rem 1rem',
-                    height: '2.5rem',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    whiteSpace: 'nowrap'
+                    justifyContent: 'center',
+                    color: '#9B724C',
+                    fontSize: '1.8rem',
+                    textDecoration: 'none',
+                    padding: '0.5rem'
                   }}
+                  aria-label={t('addProduct')}
                 >
-                  {t('addProduct')}
+                  <MdAssignmentAdd />
                 </Link>
               )}
-              <MiniCart />
+              <Link 
+                to="/cart" 
+                style={{ 
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9B724C',
+                  fontSize: '1.5rem',
+                  textDecoration: 'none',
+                  padding: '0.5rem'
+                }}
+              >
+                <MdOutlineShoppingCart />
+                {cartCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '0',
+                    right: '0',
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: '18px',
+                    height: '18px',
+                    fontSize: '11px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold'
+                  }}>
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
             </div>
-            <select value={lang} onChange={(e) => setLang(e.target.value)} className="lang-select">
-              <option value="de">DE</option>
-              <option value="en">EN</option>
-              <option value="fr">FR</option>
-              <option value="it">IT</option>
-            </select>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9B724C',
+                  fontSize: '1.5rem',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.5rem'
+                }}
+                aria-label="Select language"
+              >
+                <MdLanguage />
+              </button>
+              {isLangMenuOpen && (
+                <>
+                  <div 
+                    style={{
+                      position: 'fixed',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 100
+                    }}
+                    onClick={() => setIsLangMenuOpen(false)}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '0.5rem',
+                    background: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.375rem',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    zIndex: 101,
+                    minWidth: '100px'
+                  }}>
+                    {languages.map((lng) => (
+                      <button
+                        key={lng.code}
+                        onClick={() => {
+                          setLang(lng.code)
+                          setIsLangMenuOpen(false)
+                        }}
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          padding: '0.5rem 1rem',
+                          textAlign: 'left',
+                          background: lang === lng.code ? '#f3f4f6' : 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem',
+                          color: lang === lng.code ? '#9B724C' : '#111827',
+                          fontWeight: lang === lng.code ? 600 : 400
+                        }}
+                      >
+                        {lng.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
             {user ? (
-              <button onClick={logout} className="btn">{t('logout')}</button>
+              <button 
+                onClick={logout} 
+                style={{ 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9B724C',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.5rem',
+                  gap: '0.25rem'
+                }}
+                aria-label={t('logout')}
+              >
+                <FaUserAlt style={{ fontSize: '1.5rem' }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                  Hallo {user.username}
+                </span>
+              </button>
             ) : (
-              <Link to="/login" className="btn">{t('login')}</Link>
+              <Link 
+                to="/login" 
+                style={{ 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9B724C',
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  gap: '0.25rem'
+                }}
+                aria-label={t('login')}
+              >
+                <FaUserAlt style={{ fontSize: '1.5rem' }} />
+              </Link>
             )}
           </nav>
           {/* Mobile Logo - küçük ve sağda */}
@@ -137,51 +295,156 @@ export function Header() {
             </div>
             <nav className="mobile-nav">
               {user && (
-                <div style={{ 
-                  padding: '1rem',
-                  borderBottom: '1px solid #e5e7eb',
-                  color: '#111827'
-                }}>
-                  Welcome {user.username}
-                </div>
+                <>
+                  <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
+                    <Link 
+                      to="/my-orders" 
+                      style={{ 
+                        color: '#9B724C',
+                        padding: '0.5rem 1rem',
+                        display: 'block',
+                        textDecoration: 'none',
+                        fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
+                        fontWeight: 500
+                      }}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {t('myOrdersLink')}
+                    </Link>
+                  </div>
+                </>
               )}
               {(user?.role === 'admin' || user?.role === 'Admin') && (
                 <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
                   <Link 
                     to="/add-product" 
-                    className="btn"
-                    style={{ 
-                      color: '#ffffff',
-                      padding: '0.5rem 1rem',
-                      height: 'auto',
-                      display: 'block',
-                      background: '#9B724C',
-                      border: '1px solid #9B724C',
-                      borderRadius: '0.375rem',
-                      textAlign: 'center',
-                      textDecoration: 'none',
-                      fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
-                      width: '124px'
-                    }}
                     onClick={() => setIsMobileMenuOpen(false)}
+                    style={{ 
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9B724C',
+                      fontSize: '1.5rem',
+                      textDecoration: 'none',
+                      padding: '0.5rem'
+                    }}
+                    aria-label={t('addProduct')}
                   >
-                    {t('addProduct')}
+                    <MdAssignmentAdd />
                   </Link>
                 </div>
               )}
-              <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
-                <select value={lang} onChange={(e) => setLang(e.target.value)} className="lang-select" style={{ width: '124px', padding: '0.5rem 0.75rem', height: 'auto', fontSize: 'clamp(0.75rem, 2vw, 0.9rem)' }}>
-                  <option value="de">DE</option>
-                  <option value="en">EN</option>
-                  <option value="fr">FR</option>
-                  <option value="it">IT</option>
-                </select>
+              <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-start', position: 'relative' }}>
+                <button
+                  onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#9B724C',
+                    fontSize: '1.5rem',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '0.5rem'
+                  }}
+                  aria-label="Select language"
+                >
+                  <MdLanguage />
+                </button>
+                {isLangMenuOpen && (
+                  <>
+                    <div 
+                      style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 100
+                      }}
+                      onClick={() => setIsLangMenuOpen(false)}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '1rem',
+                      marginTop: '0.5rem',
+                      background: '#ffffff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.375rem',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      zIndex: 101,
+                      minWidth: '100px'
+                    }}>
+                      {languages.map((lng) => (
+                        <button
+                          key={lng.code}
+                          onClick={() => {
+                            setLang(lng.code)
+                            setIsLangMenuOpen(false)
+                          }}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '0.5rem 1rem',
+                            textAlign: 'left',
+                            background: lang === lng.code ? '#f3f4f6' : 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '0.875rem',
+                            color: lang === lng.code ? '#9B724C' : '#111827',
+                            fontWeight: lang === lng.code ? 600 : 400
+                          }}
+                        >
+                          {lng.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
               <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
                 {user ? (
-                  <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="btn" style={{ color: '#ffffff', background: '#9B724C', border: '1px solid #9B724C', width: '124px', padding: '0.5rem 1rem', height: 'auto', fontSize: 'clamp(0.75rem, 2vw, 0.9rem)' }}>{t('logout')}</button>
+                  <button 
+                    onClick={() => { logout(); setIsMobileMenuOpen(false); }} 
+                    style={{ 
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9B724C',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '0.5rem',
+                      gap: '0.25rem'
+                    }}
+                    aria-label={t('logout')}
+                  >
+                    <FaUserAlt style={{ fontSize: '1.5rem' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                      Hallo {user.username}
+                    </span>
+                  </button>
                 ) : (
-                  <Link to="/login" className="btn" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', background: '#9B724C', border: '1px solid #9B724C', width: '124px', display: 'block', textAlign: 'center', textDecoration: 'none', padding: '0.5rem 1rem', height: 'auto', fontSize: 'clamp(0.75rem, 2vw, 0.9rem)' }}>{t('login')}</Link>
+                  <Link 
+                    to="/login" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ 
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9B724C',
+                      textDecoration: 'none',
+                      padding: '0.5rem',
+                      gap: '0.25rem'
+                    }}
+                    aria-label={t('login')}
+                  >
+                    <FaUserAlt style={{ fontSize: '1.5rem' }} />
+                  </Link>
                 )}
               </div>
             </nav>
