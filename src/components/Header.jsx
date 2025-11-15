@@ -63,10 +63,88 @@ export function Header() {
                 height: '200px', 
                 width: 'auto', 
                 objectFit: 'contain',
-                margin: '0 1rem'
               }} 
             />
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ position: 'relative' }}>
+                <Link 
+                  to="/cart" 
+                  className="mobile-cart"
+                  style={{ 
+                    position: 'relative',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#9B724C',
+                    fontSize: '1.5rem',
+                    textDecoration: 'none',
+                    padding: '0.5rem'
+                  }}
+                  aria-label={t('cart')}
+                  onMouseEnter={(e) => {
+                    const tooltip = e.currentTarget.nextSibling
+                    if (tooltip) tooltip.style.display = 'block'
+                  }}
+                  onMouseLeave={(e) => {
+                    const tooltip = e.currentTarget.nextSibling
+                    if (tooltip) tooltip.style.display = 'none'
+                  }}
+                >
+                  <MdOutlineShoppingCart />
+                  {cartCount > 0 && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '0',
+                      right: '0',
+                      backgroundColor: '#dc2626',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '18px',
+                      height: '18px',
+                      fontSize: '11px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold'
+                    }}>
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    marginTop: '0.5rem',
+                    padding: '0.5rem 0.75rem',
+                    background: '#111827',
+                    color: '#ffffff',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    whiteSpace: 'nowrap',
+                    display: 'none',
+                    zIndex: 1000,
+                    pointerEvents: 'none'
+                  }}
+                >
+                  {t('cart')}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 0,
+                      height: 0,
+                      borderLeft: '6px solid transparent',
+                      borderRight: '6px solid transparent',
+                      borderBottom: '6px solid #111827'
+                    }}
+                  />
+                </div>
+              </div>
               <button 
                 className="mobile-menu-btn"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -144,11 +222,10 @@ export function Header() {
                 </div>
               </>
             )}
-            <div style={{ color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {(user?.role === 'admin' || user?.role === 'Admin') && (
+            {(user?.role === 'admin' || user?.role === 'Admin') && (
                 <div style={{ position: 'relative' }}>
-                  <Link 
-                    to="/add-product" 
+                <Link 
+                  to="/add-product" 
                     style={{ 
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -205,87 +282,9 @@ export function Header() {
                   </div>
                 </div>
               )}
-              <div style={{ position: 'relative' }}>
-                <Link 
-                  to="/cart" 
-                  style={{ 
-                    position: 'relative',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#9B724C',
-                    fontSize: '2.25rem',
-                    textDecoration: 'none',
-                    padding: '0.5rem'
-                  }}
-                  aria-label={t('cart')}
-                  onMouseEnter={(e) => {
-                    const tooltip = e.currentTarget.nextSibling
-                    if (tooltip) tooltip.style.display = 'block'
-                  }}
-                  onMouseLeave={(e) => {
-                    const tooltip = e.currentTarget.nextSibling
-                    if (tooltip) tooltip.style.display = 'none'
-                  }}
-                >
-                  <MdOutlineShoppingCart />
-                  {cartCount > 0 && (
-                    <span style={{
-                      position: 'absolute',
-                      top: '0',
-                      right: '0',
-                      backgroundColor: '#dc2626',
-                      color: 'white',
-                      borderRadius: '50%',
-                      width: '18px',
-                      height: '18px',
-                      fontSize: '11px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 'bold'
-                    }}>
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    marginTop: '0.5rem',
-                    padding: '0.5rem 0.75rem',
-                    background: '#111827',
-                    color: '#ffffff',
-                    borderRadius: '0.375rem',
-                    fontSize: '0.875rem',
-                    whiteSpace: 'nowrap',
-                    display: 'none',
-                    zIndex: 1000,
-                    pointerEvents: 'none'
-                  }}
-                >
-                  {t('cart')}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: '100%',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: 0,
-                      height: 0,
-                      borderLeft: '6px solid transparent',
-                      borderRight: '6px solid transparent',
-                      borderBottom: '6px solid #111827'
-                    }}
-                  />
-                </div>
-              </div>
-              <div style={{ position: 'relative' }}>
-                <button
-                  onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -393,7 +392,6 @@ export function Header() {
                   </div>
                 </>
               )}
-              </div>
             </div>
             <div style={{ position: 'relative' }}>
               {user ? (
@@ -526,25 +524,67 @@ export function Header() {
               </button>
             </div>
             <nav className="mobile-nav">
+              <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
+                {user ? (
+                  <button 
+                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} 
+                    style={{ 
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      color: '#9B724C',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '0.5rem',
+                      gap: '0.5rem'
+                    }}
+                    aria-label={t('logout')}
+                  >
+                    <FaUserAlt style={{ fontSize: '1.5rem' }} />
+                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                      Hallo {user.username}
+                    </span>
+                  </button>
+                ) : (
+                  <Link 
+                    to="/login" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    style={{ 
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      color: '#9B724C',
+                      textDecoration: 'none',
+                      padding: '0.5rem',
+                      gap: '0.5rem'
+                    }}
+                    aria-label={t('login')}
+                  >
+                    <FaUserAlt style={{ fontSize: '1.5rem' }} />
+                  </Link>
+                )}
+              </div>
               {user && (
                 <>
-                  <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
                     <Link 
                       to="/my-orders" 
                       style={{ 
-                        color: '#9B724C',
-                        padding: '0.5rem 1rem',
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.5rem',
+                        justifyContent: 'center',
+                        color: '#9B724C',
+                        fontSize: '1.5rem',
                         textDecoration: 'none',
-                        fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
-                        fontWeight: 500
+                        padding: '0.5rem'
                       }}
                       onClick={() => setIsMobileMenuOpen(false)}
+                      aria-label={t('myOrdersLink')}
                     >
-                      <FaClipboardList style={{ fontSize: '1.5rem' }} />
-                      <span>{t('myOrdersLink')}</span>
+                      <FaClipboardList />
                     </Link>
                 </div>
                 </>
@@ -637,49 +677,6 @@ export function Header() {
                       ))}
                 </div>
                   </>
-                )}
-              </div>
-              <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
-                {user ? (
-                  <button 
-                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} 
-                    style={{ 
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      color: '#9B724C',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '0.5rem',
-                      gap: '0.5rem'
-                    }}
-                    aria-label={t('logout')}
-                  >
-                    <FaUserAlt style={{ fontSize: '1.5rem' }} />
-                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
-                      Hallo {user.username}
-                    </span>
-                  </button>
-                ) : (
-                  <Link 
-                    to="/login" 
-                    onClick={() => setIsMobileMenuOpen(false)} 
-                    style={{ 
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      color: '#9B724C',
-                      textDecoration: 'none',
-                      padding: '0.5rem',
-                      gap: '0.5rem'
-                    }}
-                    aria-label={t('login')}
-                  >
-                    <FaUserAlt style={{ fontSize: '1.5rem' }} />
-                  </Link>
                 )}
               </div>
             </nav>

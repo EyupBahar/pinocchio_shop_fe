@@ -121,12 +121,22 @@ img {
   color: inherit;
   padding: 0.5rem;
 }
+.mobile-cart {
+  display: none;
+}
+@media (min-width: 769px) {
+  .mobile-cart {
+    display: inline-flex !important;
+    font-size: 2.25rem !important;
+  }
+}
 @media (max-width: 768px) {
   .mobile-menu-btn {
     display: block;
   }
   .mobile-cart {
     display: block !important;
+    font-size: 1.5rem !important;
   }
   .desktop-nav {
     display: none !important;
@@ -140,7 +150,7 @@ img {
     height: 100px !important;
   }
   .center-logo {
-    height: clamp(150px, 25vw, 250px) !important;
+    height: clamp(85px, 15vw, 250px) !important;
   }
 }
 .site-title {
