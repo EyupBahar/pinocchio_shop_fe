@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
 import { toast } from 'react-toastify'
 import { useCart } from '../contexts/CartContext.jsx'
+import { useAuth } from '../contexts/AuthContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 export function CartPage() {
   const { items, removeItem, updateQuantity, totals, clearCart } = useCart()
+  const { user } = useAuth()
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
@@ -90,6 +92,13 @@ export function CartPage() {
               onClick={() => {
                 if (items.length === 0) {
                   console.warn('⚠️ Sepet boş, checkout sayfasına gidilemiyor')
+                  return
+                }
+                if (!user) {
+                  toast.error(t('pleaseRegisterToOrder'), {
+                    position: 'top-right',
+                    autoClose: 4000,
+                  })
                   return
                 }
                 navigate('/checkout')

@@ -5,6 +5,7 @@ import { useCart } from "../contexts/CartContext.jsx";
 import { useI18n } from "../contexts/I18nContext.jsx";
 import { StarRating } from "../components/StarRating.jsx";
 import { productService } from "../services/productService.js";
+import { translateText, translateBatch } from "../services/translationService.js";
 import { FaAngleDown } from "react-icons/fa";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Thumbs } from 'swiper/modules';
@@ -16,7 +17,7 @@ import bamosCert2 from '../assets/Bamos_zertifikat_2.png';
 
 export function ProductPage() {
   const { id } = useParams();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const fallbackProduct = useMemo(() => getProductById(id), [id]);
   const { addItem, items, updateQuantity } = useCart();
   const [apiProduct, setApiProduct] = useState(null);
@@ -29,6 +30,16 @@ export function ProductPage() {
     deliveryFeatures: false
   });
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
+  
+  // Translated content state
+  const [translatedContent, setTranslatedContent] = useState({
+    title: null,
+    description: null,
+    productFeatures: null,
+    shipmentFeatures: null,
+    deliveryFeatures: null
+  });
+  const [translating, setTranslating] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -59,6 +70,72 @@ export function ProductPage() {
   const deliveryFeatures = features.delivery_features || product?.delivery_features || [];
   const descriptionText = features.description || product?.description || '';
 
+  // Translate product content when language changes or product loads
+  useEffect(() => {
+    if (!product || !product.title) return;
+    
+    // Only translate if language is not Turkish (assuming Turkish is the source language)
+    if (lang === 'tr') {
+      setTranslatedContent({
+        title: null,
+        description: null,
+        productFeatures: null,
+        shipmentFeatures: null,
+        deliveryFeatures: null
+      });
+      return;
+    }
+
+    const translateProductContent = async () => {
+      setTranslating(true);
+      try {
+        // Translate title
+        const translatedTitle = await translateText(product.title, lang, 'tr');
+        
+        // Translate description
+        let translatedDescription = null;
+        if (descriptionText) {
+          translatedDescription = await translateText(descriptionText, lang, 'tr');
+        }
+        
+        // Translate features arrays
+        const translatedProductFeatures = productFeatures.length > 0
+          ? await translateBatch(productFeatures, lang, 'tr')
+          : null;
+        
+        const translatedShipmentFeatures = shipmentFeatures.length > 0
+          ? await translateBatch(shipmentFeatures, lang, 'tr')
+          : null;
+        
+        const translatedDeliveryFeatures = deliveryFeatures.length > 0
+          ? await translateBatch(deliveryFeatures, lang, 'tr')
+          : null;
+
+        setTranslatedContent({
+          title: translatedTitle,
+          description: translatedDescription,
+          productFeatures: translatedProductFeatures,
+          shipmentFeatures: translatedShipmentFeatures,
+          deliveryFeatures: translatedDeliveryFeatures
+        });
+      } catch (error) {
+        console.error('Translation error:', error);
+        // On error, use original content
+        setTranslatedContent({
+          title: null,
+          description: null,
+          productFeatures: null,
+          shipmentFeatures: null,
+          deliveryFeatures: null
+        });
+      } finally {
+        setTranslating(false);
+      }
+    };
+
+    translateProductContent();
+  }, [product, lang, descriptionText, productFeatures, shipmentFeatures, deliveryFeatures]);
+
   // Parse description to split numbered items into separate lines
   const parseDescription = (desc) => {
     if (!desc) return null;
@@ -76,7 +153,14 @@ export function ProductPage() {
       });
   };
 
-  const descriptionItems = descriptionText ? parseDescription(descriptionText) : null;
+  // Use translated content if available, otherwise use original
+  const displayTitle = translatedContent.title || product?.title || '';
+  const displayDescription = translatedContent.description || descriptionText || '';
+  const displayProductFeatures = translatedContent.productFeatures || productFeatures || [];
+  const displayShipmentFeatures = translatedContent.shipmentFeatures || shipmentFeatures || [];
+  const displayDeliveryFeatures = translatedContent.deliveryFeatures || deliveryFeatures || [];
+  
+  const descriptionItems = displayDescription ? parseDescription(displayDescription) : null;
 
   // Prepare images array (main image + additional images)
   const mainImage = product?.image || product?.imageUrl || product?.picture;
@@ -140,7 +224,7 @@ export function ProductPage() {
                   <SwiperSlide key={index}>
                     <img
                       src={img}
-                      alt={`${product.title} - ${index + 1}`}
+                      alt={`${displayTitle || product?.title || 'Product'} - ${index + 1}`}
                       className="product-page-image"
                       loading="lazy"
                       style={{
@@ -177,7 +261,7 @@ export function ProductPage() {
                   <SwiperSlide key={index}>
                     <img
                       src={img}
-                      alt={`${product.title} thumbnail ${index + 1}`}
+                      alt={`${displayTitle || product?.title || 'Product'} thumbnail ${index + 1}`}
                       style={{
                         width: '100%',
                         height: '100px',
@@ -199,7 +283,7 @@ export function ProductPage() {
           ) : (
             <img
               src={mainImage}
-              alt={product.title}
+              alt={displayTitle || product?.title || 'Product'}
               className="product-page-image"
               loading="lazy"
               onError={(e) => {
@@ -211,9 +295,9 @@ export function ProductPage() {
         </div>
         <div>
           <h1 style={{ fontSize: "clamp(1.5rem, 6vw, 2.75rem)", fontWeight: 700, margin: 0 }}>
-            {product.title}
+            {translating ? '...' : displayTitle}
           </h1>
-          {product.rating && product.rating > 0 && (
+          {product?.rating && product.rating > 0 && (
             <div style={{ marginTop: "0.5rem" }}>
               <StarRating rating={product.rating} showValue={true} />
             </div>
@@ -264,9 +348,9 @@ export function ProductPage() {
                   borderRadius: '0'
                 }}>
                   <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
-                    {productFeatures.map((feature, idx) => (
+                    {displayProductFeatures.map((feature, idx) => (
                       <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
-                        {feature}
+                        {translating ? '...' : feature}
                       </li>
                     ))}
                   </ul>
@@ -311,9 +395,9 @@ export function ProductPage() {
                   borderRadius: '0'
                 }}>
                   <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
-                    {shipmentFeatures.map((feature, idx) => (
+                    {displayShipmentFeatures.map((feature, idx) => (
                       <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
-                        {feature}
+                        {translating ? '...' : feature}
                       </li>
                     ))}
                   </ul>
@@ -358,9 +442,9 @@ export function ProductPage() {
                   borderRadius: '0'
                 }}>
                   <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
-                    {deliveryFeatures.map((feature, idx) => (
+                    {displayDeliveryFeatures.map((feature, idx) => (
                       <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
-                        {feature}
+                        {translating ? '...' : feature}
                       </li>
                     ))}
                   </ul>
@@ -377,7 +461,7 @@ export function ProductPage() {
               {t("size")}
             </div>
             <div className="product-variants">
-              {product.variants?.map((v) => (
+              {product?.variants?.map((v) => (
                 <button
                   key={v.id}
                   onClick={() => setVariantId(v.id)}
@@ -457,6 +541,7 @@ export function ProductPage() {
             </div>
             <button
               onClick={() => {
+                if (!product?.id) return;
                 const finalVariantId = variantId || product?.variants?.[0]?.id || 'std';
                 if (inCart) {
                   updateQuantity(product.id, finalVariantId, quantity);
@@ -465,8 +550,9 @@ export function ProductPage() {
                 }
               }}
               className="btn btn-primary"
+              disabled={!product?.id}
             >
-              {inCart ? t("updateCart") : t("addToCart")} — CHF {(product.price * quantity).toFixed(2)}
+              {inCart ? t("updateCart") : t("addToCart")} — CHF {((product?.price || 0) * quantity).toFixed(2)}
             </button>
           </div>
         </div>

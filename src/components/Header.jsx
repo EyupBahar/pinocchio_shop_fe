@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useCart } from '../contexts/CartContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
@@ -15,6 +16,14 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false)
   const cartCount = items.reduce((s, i) => s + i.quantity, 0)
+  
+  const handleLogout = () => {
+    logout()
+    toast.success(t('loggedOut'), {
+      position: 'top-right',
+      autoClose: 3000,
+    })
+  }
   
   const languages = [
     { code: 'de', label: 'DE' },
@@ -389,7 +398,7 @@ export function Header() {
             <div style={{ position: 'relative' }}>
               {user ? (
                 <button 
-                  onClick={logout} 
+                  onClick={handleLogout} 
                   style={{ 
                     display: 'flex',
                     flexDirection: 'column',
@@ -633,7 +642,7 @@ export function Header() {
               <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
                 {user ? (
                   <button 
-                    onClick={() => { logout(); setIsMobileMenuOpen(false); }} 
+                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} 
                     style={{ 
                       display: 'flex',
                       flexDirection: 'row',

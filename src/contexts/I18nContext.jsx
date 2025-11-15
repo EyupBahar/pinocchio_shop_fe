@@ -55,6 +55,7 @@ const translations = {
     notFound: 'Produkt nicht gefunden.',
     action: 'Aktion',
     welcome: 'Willkommen',
+    welcomeUsername: 'Willkommen {username}',
     register: 'Registrieren',
     email: 'E-Mail',
     password: 'Passwort',
@@ -154,6 +155,7 @@ const translations = {
     productDeletedSuccessfully: 'Produkt wurde erfolgreich gelöscht',
     orderUpdatedSuccessfully: 'Bestellung wurde erfolgreich aktualisiert',
     errorOccurredToast: 'Ein Fehler ist aufgetreten',
+    loggedOut: 'Auf Wiedersehen!',
     
     // Checkout Page
     shipmentAddress: 'Lieferadresse',
@@ -177,6 +179,7 @@ const translations = {
     loadingUserInfo: 'Benutzerinformationen werden geladen...',
     readyToComplete: '✓ Bereit - Sie können Ihre Bestellung abschließen',
     pleaseLoginToOrder: 'Bitte melden Sie sich an, um eine Bestellung aufzugeben.',
+    pleaseRegisterToOrder: 'Um eine Bestellung aufzugeben, müssen Sie sich registrieren.',
     loadingUserInfoConsole: 'Benutzerinformationen werden geladen... (Bitte Konsole überprüfen)',
     emptyCartMessage: 'Ihr Warenkorb ist leer',
     emptyCartDescription: 'Sie müssen Artikel in Ihrem Warenkorb haben, um eine Zahlung vorzunehmen.',
@@ -240,6 +243,7 @@ const translations = {
     notFound: 'Product not found.',
     action: 'Sale',
     welcome: 'Welcome',
+    welcomeUsername: 'Welcome {username}',
     register: 'Register',
     email: 'Email',
     password: 'Password',
@@ -339,6 +343,7 @@ const translations = {
     productDeletedSuccessfully: 'Product deleted successfully',
     orderUpdatedSuccessfully: 'Order updated successfully',
     errorOccurredToast: 'An error occurred',
+    loggedOut: 'Goodbye!',
     
     // Checkout Page
     shipmentAddress: 'Delivery Address',
@@ -362,6 +367,7 @@ const translations = {
     loadingUserInfo: 'Loading user information...',
     readyToComplete: '✓ Ready - You can complete your order',
     pleaseLoginToOrder: 'Please log in to place an order.',
+    pleaseRegisterToOrder: 'You must register to place an order.',
     loadingUserInfoConsole: 'Loading user information... (Please check console)',
     emptyCartMessage: 'Your cart is empty',
     emptyCartDescription: 'You must have items in your cart to make a payment.',
@@ -425,6 +431,7 @@ const translations = {
     notFound: 'Produit introuvable.',
     action: 'Promotion',
     welcome: 'Bienvenue',
+    welcomeUsername: 'Bienvenue {username}',
     register: "S'inscrire",
     email: 'E-mail',
     password: 'Mot de passe',
@@ -524,6 +531,7 @@ const translations = {
     productDeletedSuccessfully: 'Produit supprimé avec succès',
     orderUpdatedSuccessfully: 'Commande mise à jour avec succès',
     errorOccurredToast: 'Une erreur s\'est produite',
+    loggedOut: 'Au revoir!',
     
     // Checkout Page
     shipmentAddress: 'Adresse de livraison',
@@ -547,6 +555,7 @@ const translations = {
     loadingUserInfo: 'Chargement des informations utilisateur...',
     readyToComplete: '✓ Prêt - Vous pouvez finaliser votre commande',
     pleaseLoginToOrder: 'Veuillez vous connecter pour passer une commande.',
+    pleaseRegisterToOrder: 'Vous devez vous inscrire pour passer une commande.',
     loadingUserInfoConsole: 'Chargement des informations utilisateur... (Veuillez vérifier la console)',
     emptyCartMessage: 'Votre panier est vide',
     emptyCartDescription: 'Vous devez avoir des articles dans votre panier pour effectuer un paiement.',
@@ -610,6 +619,7 @@ const translations = {
     notFound: 'Prodotto non trovato.',
     action: 'Offerta',
     welcome: 'Benvenuto',
+    welcomeUsername: 'Benvenuto {username}',
     register: 'Registrati',
     email: 'Email',
     password: 'Password',
@@ -709,6 +719,7 @@ const translations = {
     productDeletedSuccessfully: 'Prodotto eliminato con successo',
     orderUpdatedSuccessfully: 'Ordine aggiornato con successo',
     errorOccurredToast: 'Si è verificato un errore',
+    loggedOut: 'Arrivederci!',
     
     // Checkout Page
     shipmentAddress: 'Indirizzo di consegna',
@@ -732,6 +743,7 @@ const translations = {
     loadingUserInfo: 'Caricamento informazioni utente...',
     readyToComplete: '✓ Pronto - Puoi completare il tuo ordine',
     pleaseLoginToOrder: 'Effettua l\'accesso per effettuare un ordine.',
+    pleaseRegisterToOrder: 'Devi registrarti per effettuare un ordine.',
     loadingUserInfoConsole: 'Caricamento informazioni utente... (Si prega di controllare la console)',
     emptyCartMessage: 'Il tuo carrello è vuoto',
     emptyCartDescription: 'Devi avere articoli nel carrello per effettuare un pagamento.',

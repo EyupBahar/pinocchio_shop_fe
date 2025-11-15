@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'react-toastify'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../services/authService.js'
@@ -109,6 +110,14 @@ export function LoginPage() {
       console.log('✅ Login - User Role:', userRole, 'Token Roles:', decodedToken?.realm_access?.roles)
       console.log('✅ Login - UserId:', userId, 'Type:', typeof userId)
       login({ username: displayName, email, role: userRole, userId: userId })
+      
+      // Show welcome toast
+      const welcomeMessage = t('welcomeUsername').replace('{username}', displayName)
+      toast.success(welcomeMessage, {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+      
       navigate('/')
     } catch (err) {
       console.error('Login error:', err)

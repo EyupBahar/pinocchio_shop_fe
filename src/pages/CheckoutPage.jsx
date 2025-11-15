@@ -125,8 +125,6 @@ export function CheckoutPage() {
 
   if (user) {
     fetchUserId()
-  } else {
-    setError(t('pleaseLoginToOrder'))
   }
   }, [user])
 
@@ -169,7 +167,10 @@ export function CheckoutPage() {
     }
 
     if (!user) {
-      setError(t('pleaseLoginToOrder'))
+      toast.error(t('pleaseRegisterToOrder'), {
+        position: 'top-right',
+        autoClose: 4000,
+      })
       return
     }
 
@@ -266,7 +267,7 @@ export function CheckoutPage() {
         position: 'top-right',
         autoClose: 3000,
       })
-      navigate('/shop')
+      navigate('/my-orders')
     } catch (err) {
       console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       console.error('❌ Order creation error:', err)
@@ -334,6 +335,34 @@ export function CheckoutPage() {
   return (
     <div className="container section">
       <h2 className="section-title"><span>{t('checkout')}</span></h2>
+
+      {!user && (
+        <div style={{
+          padding: '1rem',
+          marginBottom: '1rem',
+          background: '#fef3c7',
+          border: '1px solid #fbbf24',
+          color: '#92400e',
+          borderRadius: '0.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem'
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
+              {t('pleaseRegisterToOrder')}
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/login')}
+            className="btn btn-primary"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            {t('login')}
+          </button>
+        </div>
+      )}
 
       {error && (
         <div style={{
@@ -832,11 +861,6 @@ export function CheckoutPage() {
           {(userId === null || userId === undefined) && user && (
             <div style={{ fontSize: '0.875rem', color: '#f59e0b', marginTop: '0.5rem' }}>
               {t('loadingUserInfoConsole')}
-            </div>
-          )}
-          {!user && (
-            <div style={{ fontSize: '0.875rem', color: '#ef4444', marginTop: '0.5rem' }}>
-              {t('pleaseLoginToOrder')}
             </div>
           )}
           {userId !== null && userId !== undefined && user && !loading && (
