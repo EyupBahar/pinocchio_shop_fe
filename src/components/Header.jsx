@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 import { useCart } from '../contexts/CartContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
 import { MdOutlineShoppingCart, MdAssignmentAdd, MdLanguage } from "react-icons/md"
-import { FaUserAlt } from "react-icons/fa"
+import { FaUserAlt, FaClipboardList } from "react-icons/fa"
 import logo from '../assets/neu_logo.svg'
 import centerLogo from '../assets/center_logo.svg'
 
@@ -49,6 +49,7 @@ export function Header() {
             <img 
               src={centerLogo} 
               alt="Center Logo" 
+              className="center-logo"
               style={{ 
                 height: '200px', 
                 width: 'auto', 
@@ -74,94 +75,264 @@ export function Header() {
           <nav className="nav desktop-nav" style={{ color: '#111827', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {user && (
               <>
-                <Link 
-                  to="/my-orders" 
-                  style={{ 
-                    fontSize: 'clamp(0.75rem, 2vw, 0.9rem)', 
-                    padding: '0.5rem 1rem',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    whiteSpace: 'nowrap',
-                    color: '#9B724C',
-                    textDecoration: 'none',
-                    fontWeight: 500
-                  }}
-                >
-                  {t('myOrdersLink')}
-                </Link>
+                <div style={{ position: 'relative' }}>
+                  <Link 
+                    to="/my-orders" 
+                    style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9B724C',
+                      fontSize: '2.25rem',
+                      textDecoration: 'none',
+                      padding: '0.5rem'
+                    }}
+                    aria-label={t('myOrdersLink')}
+                    onMouseEnter={(e) => {
+                      const tooltip = e.currentTarget.nextSibling
+                      if (tooltip) tooltip.style.display = 'block'
+                    }}
+                    onMouseLeave={(e) => {
+                      const tooltip = e.currentTarget.nextSibling
+                      if (tooltip) tooltip.style.display = 'none'
+                    }}
+                  >
+                    <FaClipboardList />
+                  </Link>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      marginTop: '0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      background: '#111827',
+                      color: '#ffffff',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem',
+                      whiteSpace: 'nowrap',
+                      display: 'none',
+                      zIndex: 1000,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    {t('myOrdersLink')}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 0,
+                        height: 0,
+                        borderLeft: '6px solid transparent',
+                        borderRight: '6px solid transparent',
+                        borderBottom: '6px solid #111827'
+                      }}
+                    />
+                  </div>
+                </div>
               </>
             )}
             <div style={{ color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               {(user?.role === 'admin' || user?.role === 'Admin') && (
+                <div style={{ position: 'relative' }}>
+                  <Link 
+                    to="/add-product" 
+                    style={{ 
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9B724C',
+                      fontSize: '2.25rem',
+                      textDecoration: 'none',
+                      padding: '0.5rem'
+                    }}
+                    aria-label={t('addProduct')}
+                    onMouseEnter={(e) => {
+                      const tooltip = e.currentTarget.nextSibling
+                      if (tooltip) tooltip.style.display = 'block'
+                    }}
+                    onMouseLeave={(e) => {
+                      const tooltip = e.currentTarget.nextSibling
+                      if (tooltip) tooltip.style.display = 'none'
+                    }}
+                  >
+                    <MdAssignmentAdd />
+                  </Link>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      marginTop: '0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      background: '#111827',
+                      color: '#ffffff',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem',
+                      whiteSpace: 'nowrap',
+                      display: 'none',
+                      zIndex: 1000,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    {t('addProduct')}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 0,
+                        height: 0,
+                        borderLeft: '6px solid transparent',
+                        borderRight: '6px solid transparent',
+                        borderBottom: '6px solid #111827'
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              <div style={{ position: 'relative' }}>
                 <Link 
-                  to="/add-product" 
+                  to="/cart" 
                   style={{ 
+                    position: 'relative',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#9B724C',
-                    fontSize: '1.8rem',
+                    fontSize: '2.25rem',
                     textDecoration: 'none',
                     padding: '0.5rem'
                   }}
-                  aria-label={t('addProduct')}
+                  aria-label={t('cart')}
+                  onMouseEnter={(e) => {
+                    const tooltip = e.currentTarget.nextSibling
+                    if (tooltip) tooltip.style.display = 'block'
+                  }}
+                  onMouseLeave={(e) => {
+                    const tooltip = e.currentTarget.nextSibling
+                    if (tooltip) tooltip.style.display = 'none'
+                  }}
                 >
-                  <MdAssignmentAdd />
+                  <MdOutlineShoppingCart />
+                  {cartCount > 0 && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '0',
+                      right: '0',
+                      backgroundColor: '#dc2626',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '18px',
+                      height: '18px',
+                      fontSize: '11px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold'
+                    }}>
+                      {cartCount}
+                    </span>
+                  )}
                 </Link>
-              )}
-              <Link 
-                to="/cart" 
-                style={{ 
-                  position: 'relative',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#9B724C',
-                  fontSize: '1.5rem',
-                  textDecoration: 'none',
-                  padding: '0.5rem'
-                }}
-              >
-                <MdOutlineShoppingCart />
-                {cartCount > 0 && (
-                  <span style={{
+                <div
+                  style={{
                     position: 'absolute',
-                    top: '0',
-                    right: '0',
-                    backgroundColor: '#dc2626',
-                    color: 'white',
-                    borderRadius: '50%',
-                    width: '18px',
-                    height: '18px',
-                    fontSize: '11px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold'
-                  }}>
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-            </div>
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                    top: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    marginTop: '0.5rem',
+                    padding: '0.5rem 0.75rem',
+                    background: '#111827',
+                    color: '#ffffff',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    whiteSpace: 'nowrap',
+                    display: 'none',
+                    zIndex: 1000,
+                    pointerEvents: 'none'
+                  }}
+                >
+                  {t('cart')}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 0,
+                      height: 0,
+                      borderLeft: '6px solid transparent',
+                      borderRight: '6px solid transparent',
+                      borderBottom: '6px solid #111827'
+                    }}
+                  />
+                </div>
+              </div>
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#9B724C',
-                  fontSize: '1.5rem',
+                  fontSize: '2.25rem',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
                   padding: '0.5rem'
                 }}
                 aria-label="Select language"
+                onMouseEnter={(e) => {
+                  const tooltip = e.currentTarget.nextSibling
+                  if (tooltip && !isLangMenuOpen) tooltip.style.display = 'block'
+                }}
+                onMouseLeave={(e) => {
+                  const tooltip = e.currentTarget.nextSibling
+                  if (tooltip) tooltip.style.display = 'none'
+                }}
               >
                 <MdLanguage />
               </button>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  marginTop: '0.5rem',
+                  padding: '0.5rem 0.75rem',
+                  background: '#111827',
+                  color: '#ffffff',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  whiteSpace: 'nowrap',
+                  display: 'none',
+                  zIndex: 1000,
+                  pointerEvents: 'none'
+                }}
+              >
+                {t('language') || 'Language'}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 0,
+                    height: 0,
+                    borderLeft: '6px solid transparent',
+                    borderRight: '6px solid transparent',
+                    borderBottom: '6px solid #111827'
+                  }}
+                />
+              </div>
               {isLangMenuOpen && (
                 <>
                   <div 
@@ -213,47 +384,99 @@ export function Header() {
                   </div>
                 </>
               )}
+              </div>
             </div>
-            {user ? (
-              <button 
-                onClick={logout} 
-                style={{ 
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#9B724C',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0.5rem',
-                  gap: '0.25rem'
+            <div style={{ position: 'relative' }}>
+              {user ? (
+                <button 
+                  onClick={logout} 
+                  style={{ 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#9B724C',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '0.5rem',
+                    gap: '0.25rem'
+                  }}
+                  aria-label={t('logout')}
+                  onMouseEnter={(e) => {
+                    const tooltip = e.currentTarget.nextSibling
+                    if (tooltip) tooltip.style.display = 'block'
+                  }}
+                  onMouseLeave={(e) => {
+                    const tooltip = e.currentTarget.nextSibling
+                    if (tooltip) tooltip.style.display = 'none'
+                  }}
+                >
+                  <FaUserAlt style={{ fontSize: '1.5rem' }} />
+                  <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                    Hallo {user.username}
+                  </span>
+                </button>
+              ) : (
+                <Link 
+                  to="/login" 
+                  style={{ 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#9B724C',
+                    textDecoration: 'none',
+                    padding: '0.5rem',
+                    gap: '0.25rem'
+                  }}
+                  aria-label={t('login')}
+                  onMouseEnter={(e) => {
+                    const tooltip = e.currentTarget.nextSibling
+                    if (tooltip) tooltip.style.display = 'block'
+                  }}
+                  onMouseLeave={(e) => {
+                    const tooltip = e.currentTarget.nextSibling
+                    if (tooltip) tooltip.style.display = 'none'
+                  }}
+                >
+                  <FaUserAlt style={{ fontSize: '1.5rem' }} />
+                </Link>
+              )}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  marginTop: '0.5rem',
+                  padding: '0.5rem 0.75rem',
+                  background: '#111827',
+                  color: '#ffffff',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  whiteSpace: 'nowrap',
+                  display: 'none',
+                  zIndex: 1000,
+                  pointerEvents: 'none'
                 }}
-                aria-label={t('logout')}
               >
-                <FaUserAlt style={{ fontSize: '1.5rem' }} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                  Hallo {user.username}
-                </span>
-              </button>
-            ) : (
-              <Link 
-                to="/login" 
-                style={{ 
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#9B724C',
-                  textDecoration: 'none',
-                  padding: '0.5rem',
-                  gap: '0.25rem'
-                }}
-                aria-label={t('login')}
-              >
-                <FaUserAlt style={{ fontSize: '1.5rem' }} />
-              </Link>
-            )}
+                {user ? t('logout') : t('login')}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 0,
+                    height: 0,
+                    borderLeft: '6px solid transparent',
+                    borderRight: '6px solid transparent',
+                    borderBottom: '6px solid #111827'
+                  }}
+                />
+              </div>
+            </div>
           </nav>
           {/* Mobile Logo - küçük ve sağda */}
           <div className="mobile-logo" style={{ display: 'none' }}>
@@ -296,22 +519,25 @@ export function Header() {
             <nav className="mobile-nav">
               {user && (
                 <>
-                  <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
+                  <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '0.5rem' }}>
                     <Link 
                       to="/my-orders" 
                       style={{ 
                         color: '#9B724C',
                         padding: '0.5rem 1rem',
-                        display: 'block',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
                         textDecoration: 'none',
                         fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
                         fontWeight: 500
                       }}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      {t('myOrdersLink')}
+                      <FaClipboardList style={{ fontSize: '1.5rem' }} />
+                      <span>{t('myOrdersLink')}</span>
                     </Link>
-                  </div>
+                </div>
                 </>
               )}
               {(user?.role === 'admin' || user?.role === 'Admin') && (
@@ -355,7 +581,7 @@ export function Header() {
                 {isLangMenuOpen && (
                   <>
                     <div 
-                      style={{
+                    style={{ 
                         position: 'fixed',
                         top: 0,
                         left: 0,
@@ -400,7 +626,7 @@ export function Header() {
                           {lng.label}
                         </button>
                       ))}
-                    </div>
+                </div>
                   </>
                 )}
               </div>
@@ -410,20 +636,20 @@ export function Header() {
                     onClick={() => { logout(); setIsMobileMenuOpen(false); }} 
                     style={{ 
                       display: 'flex',
-                      flexDirection: 'column',
+                      flexDirection: 'row',
                       alignItems: 'center',
-                      justifyContent: 'center',
+                      justifyContent: 'flex-start',
                       color: '#9B724C',
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
                       padding: '0.5rem',
-                      gap: '0.25rem'
+                      gap: '0.5rem'
                     }}
                     aria-label={t('logout')}
                   >
                     <FaUserAlt style={{ fontSize: '1.5rem' }} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
                       Hallo {user.username}
                     </span>
                   </button>
@@ -433,13 +659,13 @@ export function Header() {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     style={{ 
                       display: 'flex',
-                      flexDirection: 'column',
+                      flexDirection: 'row',
                       alignItems: 'center',
-                      justifyContent: 'center',
+                      justifyContent: 'flex-start',
                       color: '#9B724C',
                       textDecoration: 'none',
                       padding: '0.5rem',
-                      gap: '0.25rem'
+                      gap: '0.5rem'
                     }}
                     aria-label={t('login')}
                   >

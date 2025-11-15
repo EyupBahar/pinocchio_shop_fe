@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { useCart } from '../contexts/CartContext.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
@@ -110,23 +111,23 @@ export function CheckoutPage() {
                 ? parseInt(id, 10) 
                 : id // GUID veya string olarak kal
             setUserId(userId)
-          } else {
-            console.warn('❌ UserId not found in profile. Available fields:', Object.keys(profile))
-          }
         } else {
-          console.warn('❌ No token found')
+          console.warn('❌ UserId not found in profile. Available fields:', Object.keys(profile))
         }
-      } catch (err) {
-        console.error('Error fetching user profile:', err)
-        setError('Kullanıcı bilgisi alınamadı. Lütfen tekrar giriş yapın.')
+      } else {
+        console.warn('❌ No token found')
       }
+    } catch (err) {
+      console.error('Error fetching user profile:', err)
+      setError(t('userInfoNotAvailable'))
     }
+  }
 
-    if (user) {
-      fetchUserId()
-    } else {
-      setError('Sipariş vermek için lütfen giriş yapın.')
-    }
+  if (user) {
+    fetchUserId()
+  } else {
+    setError(t('pleaseLoginToOrder'))
+  }
   }, [user])
 
   // Pre-fill email if user is logged in
@@ -163,12 +164,12 @@ export function CheckoutPage() {
     
     // Basic validations
     if (items.length === 0) {
-      setError('Sepetiniz boş')
+      setError(t('emptyCartMessage'))
       return
     }
 
     if (!user) {
-      setError('Sipariş vermek için lütfen giriş yapın.')
+      setError(t('pleaseLoginToOrder'))
       return
     }
 
@@ -188,80 +189,84 @@ export function CheckoutPage() {
     
     for (const field of requiredFields) {
       if (!shipmentAddress[field] || shipmentAddress[field].trim() === '') {
-        validationErrors.push(`Teslimat adresindeki ${field} alanı eksik`)
+        validationErrors.push(`${t('shipmentAddressField')} ${t('fieldMissing')}: ${t(field) || field}`)
         hasValidationErrors = true
       }
       if (!invoiceAddress[field] || invoiceAddress[field].trim() === '') {
-        validationErrors.push(`Fatura adresindeki ${field} alanı eksik`)
+        validationErrors.push(`${t('invoiceAddressField')} ${t('fieldMissing')}: ${t(field) || field}`)
         hasValidationErrors = true
       }
     }
     
     if (hasValidationErrors) {
-      setError('Lütfen tüm zorunlu alanları doldurun: ' + validationErrors.join(', '))
+      setError(t('pleaseFillRequiredFields') + ': ' + validationErrors.join(', '))
+    }
+
+    // Prepare order items - ensure all are numbers
+    const orderItems = items.map(item => {
+      const productId = typeof item.id === 'string' ? parseInt(item.id, 10) : Number(item.id)
+      const quantity = typeof item.quantity === 'string' ? parseInt(item.quantity, 10) : Number(item.quantity)
+      const price = typeof item.price === 'string' ? parseFloat(item.price) : Number(item.price)
+      
+      return {
+        productId: isNaN(productId) ? 0 : productId,
+        quantity: isNaN(quantity) ? 1 : quantity,
+        price: isNaN(price) ? 0 : price
+      }
+    })
+
+    // Clean address objects - use empty string for missing fields
+    const cleanAddress = (address) => {
+      const cleaned = {}
+      const defaultFields = {
+        fullName: '',
+        email: '',
+        street: '',
+        city: '',
+        region: '',
+        postalCode: '',
+        country: '',
+        phoneNumber: '',
+        companyName: ''
+      }
+      
+      Object.keys(defaultFields).forEach(key => {
+        cleaned[key] = address[key] || defaultFields[key]
+      })
+      
+      return cleaned
+    }
+
+    // Prepare order data
+    const orderData = {
+      userId: finalUserId,
+      order_items: orderItems,
+      shipmentAddress: cleanAddress(shipmentAddress),
+      invoiceAddress: cleanAddress(invoiceAddress),
+      status: 1,
+      isPaid: false
+    }
+    
+    // Validate order data before sending
+    if (!finalUserId) {
+      console.warn('⚠️ Warning: userId is null/undefined, backend might reject this')
+    }
+    if (!orderItems || orderItems.length === 0) {
+      console.warn('⚠️ Warning: order_items is empty')
     }
 
     try {
       setLoading(true)
-
-      // Prepare order items - ensure all are numbers
-      const orderItems = items.map(item => {
-        const productId = typeof item.id === 'string' ? parseInt(item.id, 10) : Number(item.id)
-        const quantity = typeof item.quantity === 'string' ? parseInt(item.quantity, 10) : Number(item.quantity)
-        const price = typeof item.price === 'string' ? parseFloat(item.price) : Number(item.price)
-        
-        return {
-          productId: isNaN(productId) ? 0 : productId,
-          quantity: isNaN(quantity) ? 1 : quantity,
-          price: isNaN(price) ? 0 : price
-        }
-      })
-
-      // Clean address objects - use empty string for missing fields
-      const cleanAddress = (address) => {
-        const cleaned = {}
-        const defaultFields = {
-          fullName: '',
-          email: '',
-          street: '',
-          city: '',
-          region: '',
-          postalCode: '',
-          country: '',
-          phoneNumber: '',
-          companyName: ''
-        }
-        
-        Object.keys(defaultFields).forEach(key => {
-          cleaned[key] = address[key] || defaultFields[key]
-        })
-        
-        return cleaned
-      }
-
-      // Prepare order data
-      const orderData = {
-        userId: finalUserId,
-        order_items: orderItems,
-        shipmentAddress: cleanAddress(shipmentAddress),
-        invoiceAddress: cleanAddress(invoiceAddress),
-        status: 1,
-        isPaid: false
-      }
       
-      // Validate order data before sending
-      if (!finalUserId) {
-        console.warn('⚠️ Warning: userId is null/undefined, backend might reject this')
-      }
-      if (!orderItems || orderItems.length === 0) {
-        console.warn('⚠️ Warning: order_items is empty')
-      }
+      await orderService.createOrder(orderData)
       
-      const response = await orderService.createOrder(orderData)
-      
-      // Clear cart and redirect
+      // Clear cart and show success toast
       clearCart()
-      navigate('/cart', { state: { orderSuccess: true } })
+      toast.success(t('orderPlacedSuccessfully'), {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+      navigate('/shop')
     } catch (err) {
       console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       console.error('❌ Order creation error:', err)
@@ -270,7 +275,7 @@ export function CheckoutPage() {
       console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       
       // Try to get more detailed error message
-      let errorMessage = 'Sipariş oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.'
+      let errorMessage = t('orderCreationError')
       let errorDetails = ''
       
       if (err?.response?.status === 500) {
@@ -295,6 +300,10 @@ export function CheckoutPage() {
       }
       
       setError(errorMessage + (errorDetails ? '\n\n' + errorDetails : ''))
+      toast.error(t('errorOccurredToast') + ': ' + errorMessage, {
+        position: 'top-right',
+        autoClose: 5000,
+      })
     } finally {
       setLoading(false)
     }
@@ -305,17 +314,17 @@ export function CheckoutPage() {
       <div className="container section">
         <h2 className="section-title"><span>{t('checkout')}</span></h2>
         <div style={{ padding: '1rem', background: '#fef3c7', borderRadius: '0.5rem', marginBottom: '1rem' }}>
-          <div style={{ fontWeight: 500, marginBottom: '0.5rem' }}>Sepetiniz boş</div>
+          <div style={{ fontWeight: 500, marginBottom: '0.5rem' }}>{t('emptyCartMessage')}</div>
           <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-            Ödeme yapmak için sepetinizde ürün bulunmalıdır.
+            {t('emptyCartDescription')}
           </div>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button onClick={() => navigate('/cart')} className="btn" style={{ marginTop: '1rem' }}>
-            Sepete Dön
+            {t('backToCart')}
           </button>
           <button onClick={() => navigate('/shop')} className="btn btn-primary" style={{ marginTop: '1rem' }}>
-            Alışverişe Devam Et
+            {t('continueShopping')}
           </button>
         </div>
       </div>
@@ -394,12 +403,12 @@ export function CheckoutPage() {
           {/* Shipment Address */}
           <div>
             <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>
-              Teslimat Adresi
+              {t('shipmentAddress')}
             </h3>
             <div style={{ display: 'grid', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Ad Soyad *
+                  {t('fullName')} *
                 </label>
                 <input
                   type="text"
@@ -417,7 +426,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  E-posta *
+                  {t('email')} *
                 </label>
                 <input
                   type="email"
@@ -435,7 +444,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Şirket Adı (Opsiyonel)
+                  {t('companyNameOptional')}
                 </label>
                 <input
                   type="text"
@@ -452,7 +461,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Sokak/Adres *
+                  {t('street')} *
                 </label>
                 <input
                   type="text"
@@ -470,7 +479,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Şehir *
+                  {t('city')} *
                 </label>
                 <input
                   type="text"
@@ -488,7 +497,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Bölge/Eyalet
+                  {t('region')}
                 </label>
                 <input
                   type="text"
@@ -505,7 +514,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Posta Kodu *
+                  {t('postalCode')} *
                 </label>
                 <input
                   type="text"
@@ -523,7 +532,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Ülke *
+                  {t('country')} *
                 </label>
                 <input
                   type="text"
@@ -541,7 +550,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Telefon Numarası *
+                  {t('phoneNumber')} *
                 </label>
                 <input
                   type="tel"
@@ -563,7 +572,7 @@ export function CheckoutPage() {
           {/* Invoice Address */}
           <div>
             <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>
-              Fatura Adresi
+              {t('invoiceAddress')}
             </h3>
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
@@ -573,13 +582,13 @@ export function CheckoutPage() {
                   onChange={(e) => setUseSameAddress(e.target.checked)}
                   style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
                 />
-                <span>Teslimat adresi ile aynı</span>
+                <span>{t('useSameAddress')}</span>
               </label>
             </div>
             <div style={{ display: 'grid', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Ad Soyad *
+                  {t('fullName')} *
                 </label>
                 <input
                   type="text"
@@ -599,7 +608,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  E-posta *
+                  {t('email')} *
                 </label>
                 <input
                   type="email"
@@ -619,7 +628,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Şirket Adı (Opsiyonel)
+                  {t('companyNameOptional')}
                 </label>
                 <input
                   type="text"
@@ -638,7 +647,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Sokak/Adres *
+                  {t('street')} *
                 </label>
                 <input
                   type="text"
@@ -658,7 +667,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Şehir *
+                  {t('city')} *
                 </label>
                 <input
                   type="text"
@@ -678,7 +687,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Bölge/Eyalet
+                  {t('region')}
                 </label>
                 <input
                   type="text"
@@ -697,7 +706,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Posta Kodu *
+                  {t('postalCode')} *
                 </label>
                 <input
                   type="text"
@@ -717,7 +726,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Ülke *
+                  {t('country')} *
                 </label>
                 <input
                   type="text"
@@ -737,7 +746,7 @@ export function CheckoutPage() {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Telefon Numarası *
+                  {t('phoneNumber')} *
                 </label>
                 <input
                   type="tel"
@@ -768,7 +777,7 @@ export function CheckoutPage() {
           marginBottom: '2rem'
         }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>
-            Sipariş Özeti
+            {t('orderSummary')}
           </h3>
           <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '1rem' }}>
             {items.map((item) => (
@@ -791,7 +800,7 @@ export function CheckoutPage() {
             fontSize: '1.125rem',
             fontWeight: 600
           }}>
-            <span>Toplam:</span>
+            <span>{t('total')}:</span>
             <span>CHF {totals.subtotal.toFixed(2)}</span>
           </div>
         </div>
@@ -803,7 +812,7 @@ export function CheckoutPage() {
             className="btn"
             disabled={loading}
           >
-            Geri
+            {t('back')}
           </button>
           <button
             type="submit"
@@ -818,21 +827,21 @@ export function CheckoutPage() {
               })
             }}
           >
-            {loading ? 'Gönderiliyor...' : (userId === null || userId === undefined) ? 'Kullanıcı bilgisi yükleniyor...' : 'Siparişi Tamamla'}
+            {loading ? t('submitting') : (userId === null || userId === undefined) ? t('loadingUserInfo') : t('completeOrder')}
           </button>
           {(userId === null || userId === undefined) && user && (
             <div style={{ fontSize: '0.875rem', color: '#f59e0b', marginTop: '0.5rem' }}>
-              Kullanıcı bilgisi yükleniyor... (Konsolu kontrol edin)
+              {t('loadingUserInfoConsole')}
             </div>
           )}
           {!user && (
             <div style={{ fontSize: '0.875rem', color: '#ef4444', marginTop: '0.5rem' }}>
-              Sipariş vermek için lütfen giriş yapın.
+              {t('pleaseLoginToOrder')}
             </div>
           )}
           {userId !== null && userId !== undefined && user && !loading && (
             <div style={{ fontSize: '0.875rem', color: '#10b981', marginTop: '0.5rem' }}>
-              ✓ Hazır - Siparişi tamamlayabilirsiniz
+              {t('readyToComplete')}
             </div>
           )}
         </div>

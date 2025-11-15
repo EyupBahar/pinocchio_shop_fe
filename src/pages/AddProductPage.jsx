@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { productService } from '../services/productService.js'
 import { useI18n } from '../contexts/I18nContext.jsx'
 
@@ -32,7 +33,6 @@ export function AddProductPage() {
   const [shipmentFeatureInput, setShipmentFeatureInput] = useState('')
   const [deliveryFeatureInput, setDeliveryFeatureInput] = useState('')
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -46,16 +46,6 @@ export function AddProductPage() {
           const product = byIdResponse?.data?.data || byIdResponse?.data || null
           
           if (product) {
-            // Debug: Log the full response from backend
-            console.log('📥 GetDetails Response:', JSON.stringify(product, null, 2))
-            console.log('📥 Product features structure:', {
-              hasFeaturesObject: !!product.features,
-              featuresObject: product.features,
-              rootProductFeatures: product.product_features,
-              rootShipmentFeatures: product.shipment_features,
-              rootDeliveryFeatures: product.delivery_features
-            })
-            
             // Handle features structure from backend (can be in features object or root level)
             const features = product.features || {}
             const updatedFormData = {
@@ -73,7 +63,6 @@ export function AddProductPage() {
               isActive: product.isActive !== undefined ? product.isActive : true,
               categoryId: product.categoryId || 0
             }
-            console.log('📥 Parsed FormData:', updatedFormData)
             setFormData(updatedFormData)
             setInitialFormData(updatedFormData)
             setOriginalProduct(product) // Store original product structure
@@ -197,7 +186,6 @@ export function AddProductPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setSuccess('')
 
     // Basic validation
     if (!formData.title || !formData.description || !formData.image) {
@@ -322,10 +310,16 @@ export function AddProductPage() {
         const updateData = { ...changedFields, id: Number(id) }
         console.log('📤 Sending only changed fields:', JSON.stringify(updateData, null, 2))
         await productService.update(id, updateData)
-        setSuccess('Product updated successfully!')
+        toast.success(t('productUpdatedSuccessfully'), {
+          position: 'top-right',
+          autoClose: 3000,
+        })
       } else {
         await productService.create(productData)
-        setSuccess('Product added successfully!')
+        toast.success(t('productAddedSuccessfully'), {
+          position: 'top-right',
+          autoClose: 3000,
+        })
       }
       
       setTimeout(() => {
@@ -346,6 +340,10 @@ export function AddProductPage() {
                           err.message || 
                           `Server error: ${err.response?.status || 'Unknown'}`
       setError(errorMessage)
+      toast.error(t('errorOccurredToast') + ': ' + errorMessage, {
+        position: 'top-right',
+        autoClose: 5000,
+      })
     } finally {
       setLoading(false)
     }
@@ -359,7 +357,10 @@ export function AddProductPage() {
     try {
       setIsDeleting(true)
       await productService.delete(id)
-      setSuccess('Product deleted successfully!')
+      toast.success(t('productDeletedSuccessfully'), {
+        position: 'top-right',
+        autoClose: 3000,
+      })
       setTimeout(() => {
         navigate('/shop')
       }, 2000)
@@ -370,6 +371,10 @@ export function AddProductPage() {
                           err.message || 
                           'Failed to delete product'
       setError(errorMessage)
+      toast.error(t('errorOccurredToast') + ': ' + errorMessage, {
+        position: 'top-right',
+        autoClose: 5000,
+      })
     } finally {
       setIsDeleting(false)
     }
@@ -400,18 +405,6 @@ export function AddProductPage() {
           borderRadius: '0.5rem' 
         }}>
           {error}
-        </div>
-      )}
-
-      {success && (
-        <div style={{ 
-          padding: '1rem', 
-          marginBottom: '1rem', 
-          background: '#efe', 
-          color: '#3c3', 
-          borderRadius: '0.5rem' 
-        }}>
-          {success}
         </div>
       )}
 

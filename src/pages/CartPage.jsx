@@ -1,11 +1,25 @@
+import { useEffect } from 'react'
+import { toast } from 'react-toastify'
 import { useCart } from '../contexts/CartContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 export function CartPage() {
   const { items, removeItem, updateQuantity, totals, clearCart } = useCart()
   const { t } = useI18n()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.state?.orderSuccess) {
+      toast.success(t('orderPlacedSuccessfully'), {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+      // Clear the state to prevent showing toast again on refresh
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.state, navigate, t, location.pathname])
 
   return (
     <div className="container section">

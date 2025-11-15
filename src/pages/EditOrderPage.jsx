@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
 import { orderService } from '../services/orderService.js'
@@ -12,7 +13,6 @@ export function EditOrderPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [useSameAddress, setUseSameAddress] = useState(true)
 
   const [orderData, setOrderData] = useState({
@@ -154,7 +154,6 @@ export function EditOrderPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setSuccess('')
 
     // Validate required fields
     const requiredFields = ['fullName', 'email', 'street', 'city', 'postalCode', 'country', 'phoneNumber']
@@ -187,7 +186,10 @@ export function EditOrderPage() {
       
       console.log('Order updated successfully:', response.data)
       
-      setSuccess('Sipariş başarıyla güncellendi!')
+      toast.success(t('orderUpdatedSuccessfully'), {
+        position: 'top-right',
+        autoClose: 3000,
+      })
       
       // Redirect after 2 seconds
       setTimeout(() => {
@@ -195,7 +197,12 @@ export function EditOrderPage() {
       }, 2000)
     } catch (err) {
       console.error('Order update error:', err)
-      setError(err?.response?.data?.message || 'Sipariş güncellenirken bir hata oluştu. Lütfen tekrar deneyin.')
+      const errorMessage = err?.response?.data?.message || 'Sipariş güncellenirken bir hata oluştu. Lütfen tekrar deneyin.'
+      setError(errorMessage)
+      toast.error(t('errorOccurredToast') + ': ' + errorMessage, {
+        position: 'top-right',
+        autoClose: 5000,
+      })
     } finally {
       setSaving(false)
     }
@@ -225,18 +232,6 @@ export function EditOrderPage() {
           borderRadius: '0.5rem'
         }}>
           {error}
-        </div>
-      )}
-
-      {success && (
-        <div style={{
-          padding: '1rem',
-          marginBottom: '1rem',
-          background: '#efe',
-          color: '#3c3',
-          borderRadius: '0.5rem'
-        }}>
-          {success}
         </div>
       )}
 
@@ -679,6 +674,7 @@ export function EditOrderPage() {
     </div>
   )
 }
+
 
 
 
