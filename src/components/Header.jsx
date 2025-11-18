@@ -37,35 +37,53 @@ export function Header() {
     <>
       <header className="header" style={{ background: '#ffffff', boxShadow: undefined }}>
         <div className="container header-inner">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-            <Link to="/" className="site-title" style={{ background: '#ffffff' }}>
-              <div className="header-logo" style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                // marginTop: isHomePage ? '20px' : undefined,
-                justifyContent: 'center',
-                background: '#ffffff',
-                border: '2px solid #9B724C',
-                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)'
-              }}>
-                <img src={logo} alt="Pinocchio Shop" className="header-logo-img" style={{ height: '60px', width: '60px', objectFit: 'contain' }} />
-              </div>
-            </Link>
-            <img 
-              src={centerLogo} 
-              alt="Center Logo" 
-              className="center-logo"
-              style={{ 
-                height: '200px', 
-                width: 'auto', 
-                objectFit: 'contain',
-              }} 
-            />
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', width: '100%', position: 'relative' }}>
+            {/* Left Section */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '0 0 auto' }}>
+              <Link to="/" className="site-title" style={{ background: '#ffffff' }}>
+                <div className="header-logo" style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  // marginTop: isHomePage ? '20px' : undefined,
+                  justifyContent: 'center',
+                  background: '#ffffff',
+                  border: '2px solid #9B724C',
+                  boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)'
+                }}>
+                  <img src={logo} alt="Pinocchio Shop" className="header-logo-img" style={{ height: '60px', width: '60px', objectFit: 'contain' }} />
+                </div>
+              </Link>
+            </div>
+            
+            {/* Center Section - Always Centered */}
+            <div style={{ 
+              position: 'absolute', 
+              left: '50%', 
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <img 
+                src={centerLogo} 
+                alt="Center Logo" 
+                className="center-logo"
+                style={{ 
+                  height: 'clamp(120px, 20vw, 250px)', 
+                  width: 'clamp(200px, 25vw, 350px)', 
+                  objectFit: 'contain',
+                  transform: 'scale(1.2)',
+                  transformOrigin: 'center',
+                }} 
+              />
+            </div>
+            
+            {/* Right Section */}
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.05rem', flex: '0 0 auto' }}>
               <div style={{ position: 'relative' }}>
                 <Link 
                   to="/cart" 
@@ -153,7 +171,7 @@ export function Header() {
                   color: '#111827'
                 }}
               >
-                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" className="mobile-menu-icon">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
@@ -420,9 +438,25 @@ export function Header() {
                   }}
                 >
                   <FaUserAlt style={{ fontSize: '1.5rem' }} />
-                  <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                    Hallo {user.username}
-                  </span>
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center',
+                    fontSize: '0.75rem', 
+                    fontWeight: 500,
+                    lineHeight: '1.2'
+                  }}>
+                    <span>Hallo</span>
+                    <span style={{ 
+                      maxWidth: '100px', 
+                      overflow: 'hidden', 
+                      textOverflow: 'ellipsis', 
+                      whiteSpace: 'nowrap',
+                      display: 'block'
+                    }}>
+                      {user.username}
+                    </span>
+                  </div>
                 </button>
               ) : (
                 <Link 
