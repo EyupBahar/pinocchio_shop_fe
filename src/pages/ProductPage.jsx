@@ -331,7 +331,7 @@ export function ProductPage() {
                   fontWeight: 500
                 }}
               >
-                <span>Product Features</span>
+                <span>{t('productFeatures')}</span>
                 <span style={{ transition: 'transform 0.2s', transform: openDropdown.productFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
                   <FaAngleDown />
                 </span>
@@ -378,7 +378,7 @@ export function ProductPage() {
                   fontWeight: 500
                 }}
               >
-                <span>Shipment Features</span>
+                <span>{t('shipmentFeatures')}</span>
                 <span style={{ transition: 'transform 0.2s', transform: openDropdown.shipmentFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
                   <FaAngleDown />
                 </span>
@@ -425,7 +425,7 @@ export function ProductPage() {
                   fontWeight: 500
                 }}
               >
-                <span>Delivery Features</span>
+                <span>{t('deliveryFeatures')}</span>
                 <span style={{ transition: 'transform 0.2s', transform: openDropdown.deliveryFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
                   <FaAngleDown />
                 </span>

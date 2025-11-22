@@ -6,9 +6,10 @@ import { SortBar } from '../components/SortBar.jsx'
 import { Pagination } from '../components/Pagination.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
 import { productService } from '../services/productService.js'
+import { getLocalizedProducts } from '../utils/productI18n.js'
 
 export function ShopPage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const location = useLocation()
   const [activeCategory, setActiveCategory] = useState('single')
   const [apiProducts, setApiProducts] = useState([])
@@ -35,9 +36,14 @@ export function ShopPage() {
     fetchProducts()
   }, [location.pathname])
 
+  // Localize products based on current language
+  const localizedProducts = useMemo(() => {
+    return getLocalizedProducts(apiProducts, lang)
+  }, [apiProducts, lang])
+
   const filtered = useMemo(() => {
     if (activeCategory === 'all') {
-      return apiProducts
+      return localizedProducts
     }
     
     // Kategori mapping'i
@@ -47,7 +53,7 @@ export function ShopPage() {
     }
     
     // API'den gelen ürünleri filtrele
-    const filteredProducts = apiProducts.filter((p) => {
+    const filteredProducts = localizedProducts.filter((p) => {
       const validApiIds = categoryMapping[activeCategory] || [activeCategory]
       const productCategoryRaw = p.categoryId ?? p.category ?? p.category_id
       const productCategory = productCategoryRaw != null ? String(productCategoryRaw).toLowerCase() : ''
@@ -57,7 +63,7 @@ export function ShopPage() {
     })
     
     return filteredProducts
-  }, [activeCategory, apiProducts])
+  }, [activeCategory, localizedProducts])
 
   const [sort, setSort] = useState('featured')
   const sorted = useMemo(() => {
@@ -99,7 +105,7 @@ export function ShopPage() {
         </div>
       )}
 
-      {!loading && pageItems.length === 0 && apiProducts.length === 0 && (
+      {!loading && pageItems.length === 0 && localizedProducts.length === 0 && (
         <div style={{ marginTop: '2rem', color: '#666' }}>No products found</div>
       )}
 

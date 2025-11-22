@@ -216,6 +216,67 @@ export function AuthProvider({ children }) {
     setupTokenCheck()
   }
 
+  const updateUser = async () => {
+    // Refresh user data from API
+    try {
+      const token = getToken()
+      if (token && !isTokenExpired(token)) {
+        const profileRes = await authService.getProfile(token)
+        const profile = profileRes?.data?.data || profileRes?.data || {}
+        const decodedToken = decodeToken(token)
+        
+        // Get userId
+        let userId = profile.id || profile.userId || profile.user_id || decodedToken?.sub || decodedToken?.userId || null
+        if (userId) {
+          userId = typeof userId === 'number' 
+            ? userId 
+            : (typeof userId === 'string' && !isNaN(parseInt(userId)) && !userId.includes('-'))
+              ? parseInt(userId, 10) 
+              : userId
+        }
+        
+        // Get role from token
+        let userRole = null
+        if (decodedToken?.realm_access?.roles) {
+          if (decodedToken.realm_access.roles.includes('Admin')) {
+            userRole = 'Admin'
+          } else if (decodedToken.realm_access.roles.includes('admin')) {
+            userRole = 'admin'
+          } else {
+            userRole = decodedToken.realm_access.roles[0] || null
+          }
+        }
+        if (!userRole) {
+          userRole = profile.role || profile.roles?.[0] || null
+        }
+        
+        // Create display name from firstName and lastName
+        const displayName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 
+                           profile.username || 
+                           profile.name || 
+                           profile.email || 
+                           decodedToken?.email || 
+                           decodedToken?.preferred_username || 
+                           'User'
+        
+        const email = profile.email || decodedToken?.email || ''
+        
+        const userData = { 
+          username: displayName, 
+          email: email,
+          role: userRole,
+          userId: userId
+        }
+        
+        setUser(userData)
+        localStorage.setItem('user', JSON.stringify(userData))
+        console.log('✅ User bilgisi güncellendi:', userData)
+      }
+    } catch (err) {
+      console.error('❌ User güncelleme hatası:', err)
+    }
+  }
+
   const signInWithGoogle = () => {
     // Google sign-in simülasyonu
     const googleUser = { username: 'Google User', email: 'user@gmail.com' }
@@ -228,7 +289,8 @@ export function AuthProvider({ children }) {
       isLoading, 
       login, 
       logout, 
-      signInWithGoogle 
+      signInWithGoogle,
+      updateUser
     }}>
       {children}
     </AuthContext.Provider>

@@ -4,6 +4,7 @@ import { toast } from 'react-toastify'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useCart } from '../contexts/CartContext.jsx'
 import { useI18n } from '../contexts/I18nContext.jsx'
+import { MiniCart } from './MiniCart.jsx'
 import { MdOutlineShoppingCart, MdAssignmentAdd, MdLanguage } from "react-icons/md"
 import { FaUserAlt, FaClipboardList } from "react-icons/fa"
 import logo from '../assets/neu_logo.svg'
@@ -15,6 +16,8 @@ export function Header() {
   const { lang, setLang, t } = useI18n()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isCartOpen, setIsCartOpen] = useState(false)
   const cartCount = items.reduce((s, i) => s + i.quantity, 0)
   
   const handleLogout = () => {
@@ -85,8 +88,8 @@ export function Header() {
             {/* Right Section */}
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.05rem', flex: '0 0 auto' }}>
               <div style={{ position: 'relative' }}>
-                <Link 
-                  to="/cart" 
+                <button
+                  onClick={() => setIsCartOpen(!isCartOpen)}
                   className="mobile-cart"
                   style={{ 
                     position: 'relative',
@@ -95,13 +98,15 @@ export function Header() {
                     justifyContent: 'center',
                     color: '#9B724C',
                     fontSize: '1.5rem',
-                    textDecoration: 'none',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
                     padding: '0.5rem'
                   }}
                   aria-label={t('cart')}
                   onMouseEnter={(e) => {
                     const tooltip = e.currentTarget.nextSibling
-                    if (tooltip) tooltip.style.display = 'block'
+                    if (tooltip && !isCartOpen) tooltip.style.display = 'block'
                   }}
                   onMouseLeave={(e) => {
                     const tooltip = e.currentTarget.nextSibling
@@ -128,7 +133,7 @@ export function Header() {
                       {cartCount}
                     </span>
                   )}
-                </Link>
+                </button>
                 <div
                   style={{
                     position: 'absolute',
@@ -162,6 +167,7 @@ export function Header() {
                     }}
                   />
                 </div>
+                <MiniCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
               </div>
               <button 
                 className="mobile-menu-btn"
@@ -413,8 +419,8 @@ export function Header() {
             </div>
             <div style={{ position: 'relative' }}>
               {user ? (
-                <button 
-                  onClick={handleLogout} 
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   style={{ 
                     display: 'flex',
                     flexDirection: 'column',
@@ -427,15 +433,7 @@ export function Header() {
                     padding: '0.5rem',
                     gap: '0.25rem'
                   }}
-                  aria-label={t('logout')}
-                  onMouseEnter={(e) => {
-                    const tooltip = e.currentTarget.nextSibling
-                    if (tooltip) tooltip.style.display = 'block'
-                  }}
-                  onMouseLeave={(e) => {
-                    const tooltip = e.currentTarget.nextSibling
-                    if (tooltip) tooltip.style.display = 'none'
-                  }}
+                  aria-label="User menu"
                 >
                   <FaUserAlt style={{ fontSize: '1.5rem' }} />
                   <div style={{ 
@@ -472,51 +470,88 @@ export function Header() {
                     gap: '0.25rem'
                   }}
                   aria-label={t('login')}
-                  onMouseEnter={(e) => {
-                    const tooltip = e.currentTarget.nextSibling
-                    if (tooltip) tooltip.style.display = 'block'
-                  }}
-                  onMouseLeave={(e) => {
-                    const tooltip = e.currentTarget.nextSibling
-                    if (tooltip) tooltip.style.display = 'none'
-                  }}
                 >
                   <FaUserAlt style={{ fontSize: '1.5rem' }} />
                 </Link>
               )}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  marginTop: '0.5rem',
-                  padding: '0.5rem 0.75rem',
-                  background: '#111827',
-                  color: '#ffffff',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  whiteSpace: 'nowrap',
-                  display: 'none',
-                  zIndex: 1000,
-                  pointerEvents: 'none'
-                }}
-              >
-                {user ? t('logout') : t('login')}
-                <div
-                  style={{
+              {isUserMenuOpen && user && (
+                <>
+                  <div 
+                    style={{
+                      position: 'fixed',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 100
+                    }}
+                    onClick={() => setIsUserMenuOpen(false)}
+                  />
+                  <div style={{
                     position: 'absolute',
-                    bottom: '100%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: 0,
-                    height: 0,
-                    borderLeft: '6px solid transparent',
-                    borderRight: '6px solid transparent',
-                    borderBottom: '6px solid #111827'
-                  }}
-                />
-              </div>
+                    top: '100%',
+                    right: 0,
+                    marginTop: '0.5rem',
+                    background: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.375rem',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    zIndex: 101,
+                    minWidth: '160px',
+                    overflow: 'hidden'
+                  }}>
+                    <Link
+                      to={user.userId ? `/users/update/${user.userId}` : '/users/update'}
+                      onClick={() => setIsUserMenuOpen(false)}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        textAlign: 'left',
+                        textDecoration: 'none',
+                        color: '#111827',
+                        fontSize: '0.875rem',
+                        transition: 'background 0.2s',
+                        borderBottom: '1px solid #e5e7eb'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f3f4f6'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent'
+                      }}
+                    >
+                      User Details
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false)
+                        handleLogout()
+                      }}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        textAlign: 'left',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        color: '#111827',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f3f4f6'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent'
+                      }}
+                    >
+                      {t('logout')}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </nav>
           {/* Mobile Logo - küçük ve sağda */}

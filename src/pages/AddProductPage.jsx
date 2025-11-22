@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { productService } from '../services/productService.js'
 import { useI18n } from '../contexts/I18nContext.jsx'
+import { translateText, translateBatch } from '../services/translationService.js'
 
 export function AddProductPage() {
   const navigate = useNavigate()
@@ -226,7 +227,58 @@ export function AddProductPage() {
         deliveryFeaturesLength: deliveryFeatures.length
       })
       
+      // Translate product content to all supported languages
+      const sourceLang = 'tr' // Assuming Turkish is the source language
+      const targetLanguages = ['de', 'en', 'fr', 'it']
+      
+      toast.info('Translating product content...', { position: 'top-right', autoClose: 2000 })
+      
+      // Translate title and description
+      const titleTranslations = {}
+      const descriptionTranslations = {}
+      const deliveryTimeTranslations = {}
+      
+      for (const targetLang of targetLanguages) {
+        try {
+          if (formData.title.trim()) {
+            titleTranslations[`title_${targetLang}`] = await translateText(formData.title.trim(), targetLang, sourceLang)
+          }
+          if (formData.description.trim()) {
+            descriptionTranslations[`description_${targetLang}`] = await translateText(formData.description.trim(), targetLang, sourceLang)
+          }
+          if (formData.deliveryTime) {
+            deliveryTimeTranslations[`deliveryTime_${targetLang}`] = await translateText(String(formData.deliveryTime), targetLang, sourceLang)
+          }
+        } catch (err) {
+          console.error(`Translation error for ${targetLang}:`, err)
+          // Continue with other languages even if one fails
+        }
+      }
+      
+      // Translate features arrays
+      const productFeaturesTranslations = {}
+      const shipmentFeaturesTranslations = {}
+      const deliveryFeaturesTranslations = {}
+      
+      for (const targetLang of targetLanguages) {
+        try {
+          if (productFeatures.length > 0) {
+            productFeaturesTranslations[`product_features_${targetLang}`] = await translateBatch(productFeatures, targetLang, sourceLang)
+          }
+          if (shipmentFeatures.length > 0) {
+            shipmentFeaturesTranslations[`shipment_features_${targetLang}`] = await translateBatch(shipmentFeatures, targetLang, sourceLang)
+          }
+          if (deliveryFeatures.length > 0) {
+            deliveryFeaturesTranslations[`delivery_features_${targetLang}`] = await translateBatch(deliveryFeatures, targetLang, sourceLang)
+          }
+        } catch (err) {
+          console.error(`Features translation error for ${targetLang}:`, err)
+          // Continue with other languages even if one fails
+        }
+      }
+      
       // Send all fields at root level, not nested in features object
+      // Include original language data and all translations
       const productData = {
         deliveryTime: String(formData.deliveryTime || ''),
         image: formData.image.trim(),
@@ -240,7 +292,14 @@ export function AddProductPage() {
         categoryId: Number(formData.categoryId) || 0,
         product_features: productFeatures,
         shipment_features: shipmentFeatures,
-        delivery_features: deliveryFeatures
+        delivery_features: deliveryFeatures,
+        // Add translations
+        ...titleTranslations,
+        ...descriptionTranslations,
+        ...deliveryTimeTranslations,
+        ...productFeaturesTranslations,
+        ...shipmentFeaturesTranslations,
+        ...deliveryFeaturesTranslations
       }
       
       console.log('📤 Sending product data:', JSON.stringify(productData, null, 2))
@@ -297,6 +356,72 @@ export function AddProductPage() {
         }
         if (JSON.stringify(deliveryFeatures) !== JSON.stringify(initialFormData.deliveryFeatures || [])) {
           changedFields.delivery_features = deliveryFeatures
+        }
+
+        // Translate changed fields if title, description, or features changed
+        const sourceLang = 'tr'
+        const targetLanguages = ['de', 'en', 'fr', 'it']
+        const translationPromises = []
+        
+        if (changedFields.title) {
+          toast.info('Translating updated content...', { position: 'top-right', autoClose: 2000 })
+          for (const targetLang of targetLanguages) {
+            try {
+              changedFields[`title_${targetLang}`] = await translateText(changedFields.title, targetLang, sourceLang)
+            } catch (err) {
+              console.error(`Translation error for title_${targetLang}:`, err)
+            }
+          }
+        }
+        
+        if (changedFields.description) {
+          for (const targetLang of targetLanguages) {
+            try {
+              changedFields[`description_${targetLang}`] = await translateText(changedFields.description, targetLang, sourceLang)
+            } catch (err) {
+              console.error(`Translation error for description_${targetLang}:`, err)
+            }
+          }
+        }
+        
+        if (changedFields.deliveryTime) {
+          for (const targetLang of targetLanguages) {
+            try {
+              changedFields[`deliveryTime_${targetLang}`] = await translateText(String(changedFields.deliveryTime), targetLang, sourceLang)
+            } catch (err) {
+              console.error(`Translation error for deliveryTime_${targetLang}:`, err)
+            }
+          }
+        }
+        
+        if (changedFields.product_features) {
+          for (const targetLang of targetLanguages) {
+            try {
+              changedFields[`product_features_${targetLang}`] = await translateBatch(changedFields.product_features, targetLang, sourceLang)
+            } catch (err) {
+              console.error(`Translation error for product_features_${targetLang}:`, err)
+            }
+          }
+        }
+        
+        if (changedFields.shipment_features) {
+          for (const targetLang of targetLanguages) {
+            try {
+              changedFields[`shipment_features_${targetLang}`] = await translateBatch(changedFields.shipment_features, targetLang, sourceLang)
+            } catch (err) {
+              console.error(`Translation error for shipment_features_${targetLang}:`, err)
+            }
+          }
+        }
+        
+        if (changedFields.delivery_features) {
+          for (const targetLang of targetLanguages) {
+            try {
+              changedFields[`delivery_features_${targetLang}`] = await translateBatch(changedFields.delivery_features, targetLang, sourceLang)
+            } catch (err) {
+              console.error(`Translation error for delivery_features_${targetLang}:`, err)
+            }
+          }
         }
 
         // Only send if there are changes

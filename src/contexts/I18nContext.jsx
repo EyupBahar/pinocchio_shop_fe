@@ -43,6 +43,8 @@ const translations = {
     terms: 'AGB',
     privacy: 'Datenschutz',
     imprint: 'Impressum',
+    contactUs: 'Kontakt',
+    aboutUs: 'Über uns',
     
     // Hero
     heroTitle: 'Echter Schweizer Alpen Kaviar',
@@ -115,6 +117,20 @@ const translations = {
     myOrdersLink: 'Meine Bestellungen',
     pleaseLoginToViewOrders: 'Bitte melden Sie sich an, um Ihre Bestellungen anzuzeigen.',
     loadingOrders: 'Laden...',
+    
+    // User Update
+    updateUser: 'Benutzer aktualisieren',
+    updateUserTitle: 'Benutzer aktualisieren',
+    newPassword: 'Neues Passwort',
+    newPasswordHint: 'Leer lassen, wenn Sie das Passwort nicht ändern möchten',
+    updating: 'Wird aktualisiert...',
+    update: 'Aktualisieren',
+    cancel: 'Abbrechen',
+    userUpdateSuccess: 'Benutzer erfolgreich aktualisiert',
+    userUpdateError: 'Fehler beim Aktualisieren des Benutzers. Bitte versuchen Sie es erneut.',
+    userLoadError: 'Fehler beim Laden der Benutzerinformationen.',
+    userIdNotFound: 'Benutzer-ID nicht gefunden',
+    pleaseFillRequiredFields: 'Bitte füllen Sie die erforderlichen Felder aus (Vorname, Nachname, E-Mail)',
     errorOccurred: 'Fehler aufgetreten',
     whatShouldIDo: 'Was soll ich tun?',
     backendServerError: 'Dies ist ein Backend-Serverfehler (500 Internal Server Error)',
@@ -231,6 +247,8 @@ const translations = {
     terms: 'Terms',
     privacy: 'Privacy',
     imprint: 'Imprint',
+    contactUs: 'Contact Us',
+    aboutUs: 'About Us',
     
     // Hero
     heroTitle: 'Authentic Swiss Alpine Caviar',
@@ -303,6 +321,20 @@ const translations = {
     myOrdersLink: 'My Orders',
     pleaseLoginToViewOrders: 'Please log in to view your orders.',
     loadingOrders: 'Loading...',
+    
+    // User Update
+    updateUser: 'Update User',
+    updateUserTitle: 'Update User',
+    newPassword: 'New Password',
+    newPasswordHint: 'Leave blank if you do not want to change the password',
+    updating: 'Updating...',
+    update: 'Update',
+    cancel: 'Cancel',
+    userUpdateSuccess: 'User updated successfully',
+    userUpdateError: 'An error occurred while updating the user. Please try again.',
+    userLoadError: 'An error occurred while loading user information.',
+    userIdNotFound: 'User ID not found',
+    pleaseFillRequiredFields: 'Please fill in the required fields (First Name, Last Name, Email)',
     errorOccurred: 'Error Occurred',
     whatShouldIDo: 'What should I do?',
     backendServerError: 'This is a backend server error (500 Internal Server Error)',
@@ -419,6 +451,8 @@ const translations = {
     terms: 'CGV',
     privacy: 'Confidentialité',
     imprint: 'Mentions légales',
+    contactUs: 'Contactez-nous',
+    aboutUs: 'À propos de nous',
     
     // Hero
     heroTitle: 'Authentique Caviar des Alpes Suisses',
@@ -491,6 +525,20 @@ const translations = {
     myOrdersLink: 'Mes Commandes',
     pleaseLoginToViewOrders: 'Veuillez vous connecter pour voir vos commandes.',
     loadingOrders: 'Chargement...',
+    
+    // User Update
+    updateUser: 'Mettre à jour l\'utilisateur',
+    updateUserTitle: 'Mettre à jour l\'utilisateur',
+    newPassword: 'Nouveau mot de passe',
+    newPasswordHint: 'Laisser vide si vous ne souhaitez pas changer le mot de passe',
+    updating: 'Mise à jour...',
+    update: 'Mettre à jour',
+    cancel: 'Annuler',
+    userUpdateSuccess: 'Utilisateur mis à jour avec succès',
+    userUpdateError: 'Une erreur s\'est produite lors de la mise à jour de l\'utilisateur. Veuillez réessayer.',
+    userLoadError: 'Une erreur s\'est produite lors du chargement des informations utilisateur.',
+    userIdNotFound: 'ID utilisateur introuvable',
+    pleaseFillRequiredFields: 'Veuillez remplir les champs obligatoires (Prénom, Nom, E-mail)',
     errorOccurred: 'Erreur survenue',
     whatShouldIDo: 'Que dois-je faire?',
     backendServerError: 'Ceci est une erreur du serveur backend (500 Internal Server Error)',
@@ -607,6 +655,8 @@ const translations = {
     terms: 'Termini',
     privacy: 'Privacy',
     imprint: 'Note legali',
+    contactUs: 'Contattaci',
+    aboutUs: 'Chi siamo',
     
     // Hero
     heroTitle: 'Autentico caviale delle Alpi svizzere',
@@ -679,6 +729,20 @@ const translations = {
     myOrdersLink: 'I Miei Ordini',
     pleaseLoginToViewOrders: 'Effettua l\'accesso per visualizzare i tuoi ordini.',
     loadingOrders: 'Caricamento...',
+    
+    // User Update
+    updateUser: 'Aggiorna utente',
+    updateUserTitle: 'Aggiorna utente',
+    newPassword: 'Nuova password',
+    newPasswordHint: 'Lasciare vuoto se non si desidera cambiare la password',
+    updating: 'Aggiornamento...',
+    update: 'Aggiorna',
+    cancel: 'Annulla',
+    userUpdateSuccess: 'Utente aggiornato con successo',
+    userUpdateError: 'Si è verificato un errore durante l\'aggiornamento dell\'utente. Riprova.',
+    userLoadError: 'Si è verificato un errore durante il caricamento delle informazioni utente.',
+    userIdNotFound: 'ID utente non trovato',
+    pleaseFillRequiredFields: 'Si prega di compilare i campi obbligatori (Nome, Cognome, Email)',
     errorOccurred: 'Errore verificato',
     whatShouldIDo: 'Cosa devo fare?',
     backendServerError: 'Questo è un errore del server backend (500 Internal Server Error)',

@@ -13,8 +13,11 @@ import { MyOrdersPage } from './pages/MyOrdersPage.jsx'
 import { LoginPage } from './pages/LoginPage.jsx'
 import { RegisterPage } from './pages/RegisterPage.jsx'
 import { AddProductPage } from './pages/AddProductPage.jsx'
+import { UpdateUserPage } from './pages/UpdateUserPage.jsx'
 import { DatenschutzPage } from './pages/DatenschutzPage.jsx'
 import { ImpressumPage } from './pages/ImpressumPage.jsx'
+import { ContactUsPage } from './pages/ContactUsPage.jsx'
+import { AboutUsPage } from './pages/AboutUsPage.jsx'
 import { useAuth } from './contexts/AuthContext.jsx'
 import { useI18n } from './contexts/I18nContext.jsx'
 
@@ -43,8 +46,12 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/add-product" element={<AddProductPage />} />
             <Route path="/add-product/:id" element={<AddProductPage />} />
+            <Route path="/users/update" element={<UpdateUserPage />} />
+            <Route path="/users/update/:id" element={<UpdateUserPage />} />
             <Route path="/datenschutz" element={<DatenschutzPage />} />
             <Route path="/impressum" element={<ImpressumPage />} />
+            <Route path="/contact" element={<ContactUsPage />} />
+            <Route path="/about" element={<AboutUsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}
