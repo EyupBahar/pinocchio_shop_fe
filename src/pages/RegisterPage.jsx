@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { authService } from '../services/authService.js'
 
 export function RegisterPage() {
@@ -14,7 +15,6 @@ export function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
 
   function updateField(field) {
     return (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
@@ -23,16 +23,22 @@ export function RegisterPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    setSuccess('')
     setSubmitting(true)
     try {
       await authService.register(form)
-      setSuccess('Registration successful. You can now sign in.')
-      setTimeout(() => navigate('/login'), 1000)
+      toast.success('Registration successful. You can now sign in.', {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+      setTimeout(() => navigate('/login'), 1500)
     } catch (err) {
       console.error('Register error:', err)
       const msg = err?.response?.data?.message || 'Registration failed'
       setError(msg)
+      toast.error(msg, {
+        position: 'top-right',
+        autoClose: 5000,
+      })
     } finally {
       setSubmitting(false)
     }
@@ -45,9 +51,6 @@ export function RegisterPage() {
 
         {error && (
           <div style={{ padding: '0.75rem', marginBottom: '1rem', background: '#fee', color: '#c33', borderRadius: '0.375rem', fontSize: '0.9rem' }}>{error}</div>
-        )}
-        {success && (
-          <div style={{ padding: '0.75rem', marginBottom: '1rem', background: '#e7f9ed', color: '#0f7b3f', borderRadius: '0.375rem', fontSize: '0.9rem' }}>{success}</div>
         )}
 
         <form onSubmit={handleSubmit}>

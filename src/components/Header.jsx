@@ -593,29 +593,113 @@ export function Header() {
               </button>
             </div>
             <nav className="mobile-nav">
-              <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
+              <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start', position: 'relative' }}>
                 {user ? (
-                  <button 
-                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} 
-                    style={{ 
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      color: '#9B724C',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '0.5rem',
-                      gap: '0.5rem'
-                    }}
-                    aria-label={t('logout')}
-                  >
-                    <FaUserAlt style={{ fontSize: '1.5rem' }} />
-                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
-                      Hallo {user.username}
-                    </span>
-                  </button>
+                  <>
+                    <button 
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
+                      style={{ 
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        color: '#9B724C',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0.5rem',
+                        gap: '0.5rem'
+                      }}
+                      aria-label="User menu"
+                    >
+                      <FaUserAlt style={{ fontSize: '1.5rem' }} />
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                        Hallo {user.username}
+                      </span>
+                    </button>
+                    {isUserMenuOpen && (
+                      <>
+                        <div 
+                          style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 100
+                          }}
+                          onClick={() => setIsUserMenuOpen(false)}
+                        />
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: '1rem',
+                          marginTop: '0.5rem',
+                          background: '#ffffff',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '0.375rem',
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                          zIndex: 101,
+                          minWidth: '160px',
+                          overflow: 'hidden'
+                        }}>
+                          <Link
+                            to={user.userId ? `/users/update/${user.userId}` : '/users/update'}
+                            onClick={() => {
+                              setIsUserMenuOpen(false)
+                              setIsMobileMenuOpen(false)
+                            }}
+                            style={{
+                              display: 'block',
+                              width: '100%',
+                              padding: '0.75rem 1rem',
+                              textAlign: 'left',
+                              textDecoration: 'none',
+                              color: '#111827',
+                              fontSize: '0.875rem',
+                              transition: 'background 0.2s',
+                              borderBottom: '1px solid #e5e7eb'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#f3f4f6'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'transparent'
+                            }}
+                          >
+                            User Details
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setIsUserMenuOpen(false)
+                              setIsMobileMenuOpen(false)
+                              handleLogout()
+                            }}
+                            style={{
+                              display: 'block',
+                              width: '100%',
+                              padding: '0.75rem 1rem',
+                              textAlign: 'left',
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '0.875rem',
+                              color: '#111827',
+                              transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#f3f4f6'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'transparent'
+                            }}
+                          >
+                            {t('logout')}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </>
                 ) : (
                   <Link 
                     to="/login" 
