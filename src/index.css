@@ -828,6 +828,9 @@ img {
   .footer-top-row {
     align-items: center;
   }
+  .footer-payment-mobile {
+    display: none !important;
+  }
 }
 
 /* BAMOS Certificate Grid */
