@@ -74,19 +74,67 @@ export function ProductPage() {
   useEffect(() => {
     if (!product || !product.title) return;
     
-    // Only translate if language is not Turkish (assuming Turkish is the source language)
-    if (lang === 'tr') {
-      setTranslatedContent({
-        title: null,
-        description: null,
-        productFeatures: null,
-        shipmentFeatures: null,
-        deliveryFeatures: null
-      });
-      return;
-    }
-
     const translateProductContent = async () => {
+      // First, check if backend already has translations for this language
+      const backendTitle = product[`title_${lang}`];
+      const backendDescription = product[`description_${lang}`];
+      const backendProductFeatures = product[`product_features_${lang}`];
+      const backendShipmentFeatures = product[`shipment_features_${lang}`];
+      const backendDeliveryFeatures = product[`delivery_features_${lang}`];
+      
+      // If backend has translations, use them directly (no API calls needed)
+      if (backendTitle || backendDescription || 
+          (Array.isArray(backendProductFeatures) && backendProductFeatures.length > 0) ||
+          (Array.isArray(backendShipmentFeatures) && backendShipmentFeatures.length > 0) ||
+          (Array.isArray(backendDeliveryFeatures) && backendDeliveryFeatures.length > 0)) {
+        console.log('✅ Using backend translations for language:', lang);
+        setTranslatedContent({
+          title: backendTitle || null,
+          description: backendDescription || null,
+          productFeatures: Array.isArray(backendProductFeatures) ? backendProductFeatures : null,
+          shipmentFeatures: Array.isArray(backendShipmentFeatures) ? backendShipmentFeatures : null,
+          deliveryFeatures: Array.isArray(backendDeliveryFeatures) ? backendDeliveryFeatures : null
+        });
+        setTranslating(false);
+        return;
+      }
+      
+      // Only translate if language is not Turkish (assuming Turkish is the source language)
+      if (lang === 'tr') {
+        setTranslatedContent({
+          title: null,
+          description: null,
+          productFeatures: null,
+          shipmentFeatures: null,
+          deliveryFeatures: null
+        });
+        setTranslating(false);
+        return;
+      }
+
+      // No backend translations found
+      // Only translate if Google Translate API key is available (to avoid MyMemory rate limits)
+      const hasGoogleApiKey = !!import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY;
+      
+      if (!hasGoogleApiKey) {
+        // No Google API key and no backend translations - use original content
+        if (import.meta.env.DEV) {
+          console.log(`ℹ️ No backend translations found for ${lang} and no Google Translate API key. Using original content.`);
+          console.log('💡 Tip: Add VITE_GOOGLE_TRANSLATE_API_KEY to enable runtime translation, or add translations via AddProductPage.');
+        }
+        setTranslatedContent({
+          title: null,
+          description: null,
+          productFeatures: null,
+          shipmentFeatures: null,
+          deliveryFeatures: null
+        });
+        setTranslating(false);
+        return;
+      }
+      
+      // Google Translate API key available - translate on-the-fly
+      console.log('⚠️ No backend translations found, translating on-the-fly with Google Translate for:', lang);
       setTranslating(true);
       try {
         // Translate title
