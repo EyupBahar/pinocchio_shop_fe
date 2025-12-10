@@ -20,10 +20,11 @@ const MYMEMORY_API_URL = 'https://api.mymemory.translated.net/get'
 
 // Rate limiting for MyMemory API (free tier has strict limits: ~100 requests/day)
 let lastRequestTime = 0
-const MIN_REQUEST_INTERVAL = 2000 // 2 seconds between requests to avoid 429 errors
+const MIN_REQUEST_INTERVAL = 5000 // 5 seconds between requests to avoid 429 errors (increased)
 const requestQueue = []
 let isProcessingQueue = false
 let consecutive429Errors = 0
+let isRateLimited = false // Global rate limit flag
 
 // Process request queue with rate limiting
 const processRequestQueue = async () => {
@@ -79,6 +80,12 @@ const languageMap = {
  * @returns {Promise<string>} Translated text
  */
 const translateWithMyMemory = async (text, targetLang, sourceLang) => {
+  // If rate limited, return original text immediately
+  if (isRateLimited) {
+    console.warn('⚠️ MyMemory API is rate limited. Returning original text.')
+    return text
+  }
+  
   const sourceCode = languageMap[sourceLang] || sourceLang
   const targetCode = languageMap[targetLang] || targetLang
   
@@ -94,35 +101,20 @@ const translateWithMyMemory = async (text, targetLang, sourceLang) => {
       
       if (!response.ok) {
         if (response.status === 429) {
-          // Rate limit exceeded - wait progressively longer
+          // Rate limit exceeded - set global flag and return original
+          isRateLimited = true
           consecutive429Errors++
-          const waitTime = Math.min(5000 * consecutive429Errors, 30000) // Max 30 seconds
-          console.warn(`⚠️ MyMemory rate limit exceeded (${consecutive429Errors}x), waiting ${waitTime/1000} seconds...`)
-          console.warn('💡 Consider using Google Translate API key to avoid rate limits')
-          await new Promise(resolve => setTimeout(resolve, waitTime))
+          console.error('❌ MyMemory API rate limit exceeded. Translation disabled.')
+          console.error('💡 To enable translations, add VITE_GOOGLE_TRANSLATE_API_KEY to your .env file')
+          console.error('💡 Or add translations via AddProductPage (backend translations)')
           
-          // Reset counter after successful retry
-          consecutive429Errors = 0
+          // Reset rate limit flag after 1 hour
+          setTimeout(() => {
+            isRateLimited = false
+            consecutive429Errors = 0
+            console.log('✅ MyMemory rate limit reset. Translations enabled again.')
+          }, 60 * 60 * 1000) // 1 hour
           
-          // Retry once
-          const retryResponse = await fetch(
-            `${MYMEMORY_API_URL}?q=${encodeURIComponent(text)}&langpair=${langPair}`
-          )
-          if (!retryResponse.ok) {
-            if (retryResponse.status === 429) {
-              // Still rate limited - return original text
-              console.error('❌ MyMemory still rate limited after retry, returning original text')
-              return text
-            }
-            throw new Error(`MyMemory API error: ${retryResponse.status}`)
-          }
-          const retryData = await retryResponse.json()
-          if (retryData.responseStatus === 200 && retryData.responseData?.translatedText) {
-            const translated = retryData.responseData.translatedText
-            if (translated && translated.trim() !== text.trim()) {
-              return translated
-            }
-          }
           return text
         }
         throw new Error(`MyMemory API error: ${response.status}`)
@@ -171,10 +163,14 @@ export const translateText = async (text, targetLang = 'en', sourceLang = 'tr') 
     return text
   }
 
-  // If no Google API key is configured, use MyMemory with strict rate limiting
+  // If no Google API key is configured, return original text (don't use MyMemory to avoid rate limits)
   if (!GOOGLE_TRANSLATE_API_KEY) {
-    // Use MyMemory but with rate limiting to avoid 429 errors
-    return translateWithMyMemory(text, targetLang, sourceLang)
+    // MyMemory has strict rate limits, so we don't use it for runtime translation
+    // Return original text instead
+    if (import.meta.env.DEV) {
+      console.warn('⚠️ No Google Translate API key. Returning original text. Add VITE_GOOGLE_TRANSLATE_API_KEY to enable translation.')
+    }
+    return text
   }
 
   try {
@@ -210,9 +206,9 @@ export const translateText = async (text, targetLang = 'en', sourceLang = 'tr') 
     const data = await response.json()
     return data.data.translations[0].translatedText || text
   } catch (error) {
-    console.error('Google Translate error, falling back to MyMemory:', error)
-    // Fallback to MyMemory if Google Translate fails
-    return translateWithMyMemory(text, targetLang, sourceLang)
+    console.error('Google Translate error:', error)
+    // Return original text instead of falling back to MyMemory (to avoid rate limits)
+    return text
   }
 }
 
@@ -233,19 +229,14 @@ export const translateBatch = async (texts, targetLang = 'en', sourceLang = 'tr'
     return texts
   }
 
-  // If no Google API key is configured, use MyMemory with strict rate limiting
+  // If no Google API key is configured, return original texts (don't use MyMemory to avoid rate limits)
   if (!GOOGLE_TRANSLATE_API_KEY) {
-    // MyMemory doesn't support batch, so translate one by one with rate limiting
-    const translatedTexts = []
-    for (const text of texts) {
-      const translated = await translateWithMyMemory(text, targetLang, sourceLang)
-      translatedTexts.push(translated)
-      // Add delay between requests to avoid rate limits
-      if (texts.length > 1) {
-        await new Promise(resolve => setTimeout(resolve, 2000)) // 2 seconds between requests
-      }
+    // MyMemory has strict rate limits, so we don't use it for runtime translation
+    // Return original texts instead
+    if (import.meta.env.DEV) {
+      console.warn('⚠️ No Google Translate API key. Returning original texts. Add VITE_GOOGLE_TRANSLATE_API_KEY to enable translation.')
     }
-    return translatedTexts
+    return texts
   }
 
   try {
@@ -279,18 +270,9 @@ export const translateBatch = async (texts, targetLang = 'en', sourceLang = 'tr'
     const data = await response.json()
     return data.data.translations.map(t => t.translatedText)
   } catch (error) {
-    console.error('Google Translate error, falling back to MyMemory:', error)
-    // Fallback to MyMemory if Google Translate fails
-    const translatedTexts = []
-    for (const text of texts) {
-      const translated = await translateWithMyMemory(text, targetLang, sourceLang)
-      translatedTexts.push(translated)
-      // Add delay between requests to avoid rate limits
-      if (texts.length > 1) {
-        await new Promise(resolve => setTimeout(resolve, 2000)) // 2 seconds between requests
-      }
-    }
-    return translatedTexts
+    console.error('Google Translate error:', error)
+    // Return original texts instead of falling back to MyMemory (to avoid rate limits)
+    return texts
   }
 }
 

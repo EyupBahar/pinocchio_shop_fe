@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../services/authService.js'
 import { useI18n } from '../contexts/I18nContext.jsx'
 import { decodeToken } from '../services/api.js'
+import { sanitizeInput, sanitizeObject, clearSensitiveData, rateLimiter, debounce } from '../utils/security.js'
 
 export function LoginPage() {
-  const { login, signInWithGoogle } = useAuth()
+  const { loginMutation, signInWithGoogle, refetchUser } = useAuth()
   const navigate = useNavigate()
   const { t } = useI18n()
   const [isLoginMode, setIsLoginMode] = useState(true)
@@ -20,6 +21,22 @@ export function LoginPage() {
   const [registerSubmitting, setRegisterSubmitting] = useState(false)
   const [registerError, setRegisterError] = useState('')
   const [registerSuccess, setRegisterSuccess] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const formRef = useRef(null)
+
+  // Cleanup sensitive data on unmount
+  useEffect(() => {
+    return () => {
+      // Clear sensitive form data
+      setPassword('')
+      setRegisterForm(prev => {
+        const cleared = { ...prev }
+        cleared.password = ''
+        clearSensitiveData(cleared)
+        return cleared
+      })
+    }
+  }, [])
 
   const handleGoogleSignIn = () => {
     setError('')
@@ -27,120 +44,137 @@ export function LoginPage() {
     navigate('/')
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // Rate-limited and debounced login handler
+  const handleSubmitInternal = useCallback(async (emailValue, passwordValue) => {
+    if (isSubmitting) return
+    
+    // Rate limiting check
+    const rateLimitKey = `login-${emailValue}`
+    if (!rateLimiter.canMakeRequest(rateLimitKey)) {
+      setError('Too many login attempts. Please wait a moment.')
+      toast.error('Too many login attempts. Please wait a moment.', {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+      return
+    }
+
+    setIsSubmitting(true)
     setError('')
+    
     try {
-      const res = await authService.login({ email, password })
-      console.log('🔍 Login API Response:', res?.data)
+      // Sanitize inputs
+      const sanitizedEmail = sanitizeInput(emailValue)
+      const sanitizedPassword = sanitizeInput(passwordValue)
       
-      const token = res?.data?.accessToken || res?.data?.data?.accessToken
-      if (!token) throw new Error('Token missing in login response')
+      const userData = await loginMutation.mutateAsync({ 
+        email: sanitizedEmail, 
+        password: sanitizedPassword 
+      })
       
-      // Get customerId from login response (highest priority)
-      let userId = res?.data?.customerId || res?.data?.data?.customerId || res?.data?.customer_id || res?.data?.data?.customer_id || null
-      if (userId) {
-        console.log('✅ UserId (customerId) from login response:', userId, 'Type:', typeof userId)
-      }
+      // Clear sensitive data from memory
+      clearSensitiveData({ password: sanitizedPassword })
       
-      // Persist token first
-      const maxAge = 60 * 60 * 24 * 7
-      document.cookie = `authToken=${encodeURIComponent(token)}; Path=/; Max-Age=${maxAge}; SameSite=Strict; Secure`
-      localStorage.setItem('authToken', token)
-
-      // Decode token to get role information
-      const decodedToken = decodeToken(token)
-      let userRole = null
-      
-      // If userId not found in login response, try to get from token
-      if (!userId) {
-        userId = decodedToken?.sub || decodedToken?.userId || decodedToken?.user_id || decodedToken?.id || decodedToken?.nameid || null
-        if (userId) {
-          // GUID formatında ise (string), olduğu gibi bırak
-          // Number ise, number olarak gönder
-          userId = typeof userId === 'number' 
-            ? userId 
-            : (typeof userId === 'string' && !isNaN(parseInt(userId)) && !userId.includes('-'))
-              ? parseInt(userId, 10) 
-              : userId // GUID veya string olarak kal
-          console.log('✅ UserId from token:', userId, 'Type:', typeof userId)
-        }
-      }
-      
-      // Check token for role information (Keycloak format)
-      if (decodedToken?.realm_access?.roles) {
-        // Check if Admin role exists in realm_access.roles
-        if (decodedToken.realm_access.roles.includes('Admin')) {
-          userRole = 'Admin'
-        } else if (decodedToken.realm_access.roles.includes('admin')) {
-          userRole = 'admin'
-        } else {
-          // Use first role if Admin not found
-          userRole = decodedToken.realm_access.roles[0] || null
-        }
-      }
-
-      // Then fetch profile with that token
-      let displayName = email
-      const [profileRes] = await Promise.all([
-        authService.getProfile(token)
-      ])
-      const p = profileRes?.data?.data || profileRes?.data || {}
-      console.log('🔍 Login - Profile data:', p)
-      displayName = p.username || [p.firstName, p.lastName].filter(Boolean).join(' ') || p.name || email
-      
-      // If userId not found in token, try to get from profile
-      if (!userId) {
-        const idFromProfile = p.id || p.userId || p.user_id || p.sub || null
-        if (idFromProfile) {
-          userId = typeof idFromProfile === 'number' 
-            ? idFromProfile 
-            : (typeof idFromProfile === 'string' && !isNaN(parseInt(idFromProfile)) && !idFromProfile.includes('-'))
-              ? parseInt(idFromProfile, 10) 
-              : idFromProfile // GUID veya string olarak kal
-          console.log('✅ UserId from profile:', userId, 'Type:', typeof userId)
-        }
-      }
-      
-      // If role not found in token, try to get from profile
-      if (!userRole) {
-        userRole = p.role || p.roles?.[0] || null
-      }
-
-      console.log('✅ Login - User Role:', userRole, 'Token Roles:', decodedToken?.realm_access?.roles)
-      console.log('✅ Login - UserId:', userId, 'Type:', typeof userId)
-      login({ username: displayName, email, role: userRole, userId: userId })
+      // Refetch user to ensure we have the latest data
+      await refetchUser()
       
       // Show welcome toast
-      const welcomeMessage = t('welcomeUsername').replace('{username}', displayName)
+      const displayName = userData?.username || sanitizedEmail
+      const welcomeMessage = t('welcomeUsername').replace('{username}', sanitizeInput(displayName))
       toast.success(welcomeMessage, {
         position: 'top-right',
         autoClose: 3000,
       })
       
+      // Clear form data
+      setEmail('')
+      setPassword('')
+      
       navigate('/')
     } catch (err) {
       console.error('Login error:', err)
-      setError(t('loginFailed'))
+      const errorMsg = err?.response?.data?.message || t('loginFailed')
+      setError(sanitizeInput(errorMsg))
+      
+      // Reset rate limiter on error
+      rateLimiter.reset(rateLimitKey)
+    } finally {
+      setIsSubmitting(false)
     }
+  }, [loginMutation, refetchUser, navigate, t, isSubmitting])
+
+  // Debounced submit handler
+  const debouncedSubmit = useCallback(
+    debounce((emailValue, passwordValue) => {
+      handleSubmitInternal(emailValue, passwordValue)
+    }, 500),
+    [handleSubmitInternal]
+  )
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (isSubmitting) return
+    
+    // Sanitize inputs before processing
+    const sanitizedEmail = sanitizeInput(email)
+    const sanitizedPassword = sanitizeInput(password)
+    
+    if (!sanitizedEmail || !sanitizedPassword) {
+      setError('Please fill in all fields')
+      return
+    }
+    
+    await handleSubmitInternal(sanitizedEmail, sanitizedPassword)
   }
 
   const updateRegisterField = (field) => (e) => {
-    setRegisterForm((prev) => ({ ...prev, [field]: e.target.value }))
+    const sanitizedValue = sanitizeInput(e.target.value)
+    setRegisterForm((prev) => ({ ...prev, [field]: sanitizedValue }))
   }
 
+  // Rate-limited register handler
   const handleRegisterSubmit = async (e) => {
     e.preventDefault()
+    e.stopPropagation()
+    
+    if (registerSubmitting) return
+    
+    // Rate limiting check
+    const rateLimitKey = `register-${registerForm.email}`
+    if (!rateLimiter.canMakeRequest(rateLimitKey)) {
+      setRegisterError('Too many registration attempts. Please wait a moment.')
+      toast.error('Too many registration attempts. Please wait a moment.', {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+      return
+    }
+    
     setRegisterError('')
     setRegisterSuccess('')
     setRegisterSubmitting(true)
+    
     try {
-      await authService.register(registerForm)
+      // Sanitize all form inputs
+      const sanitizedForm = sanitizeObject(registerForm)
+      
+      await authService.register(sanitizedForm)
+      
+      // Clear sensitive data
+      const clearedForm = { ...sanitizedForm }
+      clearSensitiveData(clearedForm)
+      setRegisterForm({ firstName: '', lastName: '', email: '', phone: '', password: '' })
+      
       setRegisterSuccess(t('registrationSuccessful'))
     } catch (err) {
       console.error('Register error:', err)
       const msg = err?.response?.data?.message || t('registrationFailed')
-      setRegisterError(msg)
+      setRegisterError(sanitizeInput(msg))
+      
+      // Reset rate limiter on error
+      rateLimiter.reset(rateLimitKey)
     } finally {
       setRegisterSubmitting(false)
     }
@@ -239,7 +273,7 @@ export function LoginPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(sanitizeInput(e.target.value))}
               placeholder="user@example.com"
               style={{
                 width: '100%',
@@ -267,6 +301,7 @@ export function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••"
+                  autoComplete="current-password"
                   style={{
                     width: '100%',
                     padding: '0.75rem',

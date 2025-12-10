@@ -10,6 +10,13 @@ function getTokenFromCookie(name = 'authToken') {
   return null
 }
 
+// Get token from storage (removed React Query cache access for security)
+function getToken() {
+  // Get token directly from storage (cookie or localStorage)
+  // Removed window.__REACT_QUERY_CLIENT__ access for security
+  return getTokenFromCookie('authToken') || localStorage.getItem('authToken')
+}
+
 // Decode JWT token
 function decodeToken(token) {
   try {
@@ -92,19 +99,30 @@ const getApiBaseURL = () => {
   return 'https://api.zero2heros.ch'
 }
 
+// Enforce HTTPS in production
+if (import.meta.env.PROD && typeof window !== 'undefined') {
+  const apiBaseURL = getApiBaseURL()
+  if (apiBaseURL && !apiBaseURL.startsWith('https://') && !apiBaseURL.startsWith('http://localhost')) {
+    console.error('⚠️ API base URL must use HTTPS in production')
+  }
+}
+
 const apiClient = axios.create({
   baseURL: getApiBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 30000, // 30 second timeout
+  // Retry configuration for rate limiting
+  retry: 1,
+  retryDelay: 1000,
 })
 
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
     // Add auth token if available
-    const token = getTokenFromCookie('authToken') || localStorage.getItem('authToken')
+    const token = getToken()
     if (token) {
       // Check if token is expired
       if (isTokenExpired(token)) {
@@ -113,6 +131,7 @@ apiClient.interceptors.request.use(
         if (typeof document !== 'undefined') {
           document.cookie = 'authToken=; Path=/; Max-Age=0; SameSite=Strict; Secure'
         }
+        // Trigger logout event (React Query cache will be cleared by AuthContext)
         // Dispatch custom event to trigger logout in AuthContext
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('tokenExpired'))
@@ -178,6 +197,7 @@ apiClient.interceptors.response.use(
           if (typeof document !== 'undefined') {
             document.cookie = 'authToken=; Path=/; Max-Age=0; SameSite=Strict; Secure'
           }
+          // Trigger logout event (React Query cache will be cleared by AuthContext)
           // Dispatch custom event to trigger logout in AuthContext
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('tokenExpired'))

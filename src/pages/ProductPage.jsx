@@ -118,6 +118,7 @@ export function ProductPage() {
       
       if (!hasGoogleApiKey) {
         // No Google API key and no backend translations - use original content
+        // MyMemory API has strict rate limits, so we don't use it for runtime translation
         if (import.meta.env.DEV) {
           console.log(`ℹ️ No backend translations found for ${lang} and no Google Translate API key. Using original content.`);
           console.log('💡 Tip: Add VITE_GOOGLE_TRANSLATE_API_KEY to enable runtime translation, or add translations via AddProductPage.');
@@ -134,6 +135,7 @@ export function ProductPage() {
       }
       
       // Google Translate API key available - translate on-the-fly
+      // Only use Google Translate, never MyMemory for runtime translation
       console.log('⚠️ No backend translations found, translating on-the-fly with Google Translate for:', lang);
       setTranslating(true);
       try {

@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { authService } from '../services/authService.js'
+import { sanitizeInput, sanitizeObject, clearSensitiveData, rateLimiter } from '../utils/security.js'
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -16,16 +17,65 @@ export function RegisterPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Cleanup sensitive data on unmount
+  useEffect(() => {
+    return () => {
+      const clearedForm = { ...form }
+      clearSensitiveData(clearedForm)
+      setForm({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        password: ''
+      })
+    }
+  }, [])
+
   function updateField(field) {
-    return (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    return (e) => {
+      const sanitizedValue = sanitizeInput(e.target.value)
+      setForm((prev) => ({ ...prev, [field]: sanitizedValue }))
+    }
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
+    e.stopPropagation()
+    
+    if (submitting) return
+    
+    // Rate limiting check
+    const rateLimitKey = `register-${form.email}`
+    if (!rateLimiter.canMakeRequest(rateLimitKey)) {
+      setError('Too many registration attempts. Please wait a moment.')
+      toast.error('Too many registration attempts. Please wait a moment.', {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+      return
+    }
+    
     setError('')
     setSubmitting(true)
+    
     try {
-      await authService.register(form)
+      // Sanitize all form inputs
+      const sanitizedForm = sanitizeObject(form)
+      
+      await authService.register(sanitizedForm)
+      
+      // Clear sensitive data
+      const clearedForm = { ...sanitizedForm }
+      clearSensitiveData(clearedForm)
+      setForm({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        password: ''
+      })
+      
       toast.success('Registration successful. You can now sign in.', {
         position: 'top-right',
         autoClose: 3000,
@@ -34,11 +84,14 @@ export function RegisterPage() {
     } catch (err) {
       console.error('Register error:', err)
       const msg = err?.response?.data?.message || 'Registration failed'
-      setError(msg)
-      toast.error(msg, {
+      setError(sanitizeInput(msg))
+      toast.error(sanitizeInput(msg), {
         position: 'top-right',
         autoClose: 5000,
       })
+      
+      // Reset rate limiter on error
+      rateLimiter.reset(rateLimitKey)
     } finally {
       setSubmitting(false)
     }

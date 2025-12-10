@@ -97,6 +97,21 @@ export function ShopPage() {
           return
         }
 
+        // Only translate if Google Translate API key is available (to avoid MyMemory rate limits)
+        const hasGoogleApiKey = !!import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY
+        
+        if (!hasGoogleApiKey) {
+          // No Google API key - use original content (backend translations or original)
+          if (import.meta.env.DEV) {
+            console.log(`ℹ️ No Google Translate API key. Using backend translations or original content for ${lang}.`)
+            console.log('💡 Tip: Add VITE_GOOGLE_TRANSLATE_API_KEY to enable runtime translation, or add translations via AddProductPage.')
+          }
+          setTranslatedProducts(productsWithBackendTranslations)
+          setTranslating(false)
+          return
+        }
+
+        // Google Translate API key available - translate on-the-fly
         // Translate all products in parallel (with rate limiting)
         const translationPromises = productsNeedingTranslation.map(async ({ original, localized }) => {
           const translated = { ...localized }

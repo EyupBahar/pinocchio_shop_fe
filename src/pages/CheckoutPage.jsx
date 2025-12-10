@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useCart } from '../contexts/CartContext.jsx'
@@ -7,6 +7,7 @@ import { useI18n } from '../contexts/I18nContext.jsx'
 import { orderService } from '../services/orderService.js'
 import { authService } from '../services/authService.js'
 import { decodeToken } from '../services/api.js'
+import { sanitizeInput, sanitizeObject, clearSensitiveData } from '../utils/security.js'
 
 export function CheckoutPage() {
   const { items, totals, clearCart } = useCart()
@@ -17,6 +18,36 @@ export function CheckoutPage() {
   const [error, setError] = useState('')
   const [userId, setUserId] = useState(null)
   const [useSameAddress, setUseSameAddress] = useState(true)
+  const formRef = useRef(null)
+
+  // Cleanup sensitive data on unmount
+  useEffect(() => {
+    return () => {
+      // Clear sensitive address data
+      setShipmentAddress({
+        fullName: '',
+        email: '',
+        street: '',
+        city: '',
+        region: '',
+        postalCode: '',
+        country: '',
+        phoneNumber: '',
+        companyName: ''
+      })
+      setInvoiceAddress({
+        fullName: '',
+        email: '',
+        street: '',
+        city: '',
+        region: '',
+        postalCode: '',
+        country: '',
+        phoneNumber: '',
+        companyName: ''
+      })
+    }
+  }, [])
 
   useEffect(() => {
     if (items.length === 0) {
@@ -144,15 +175,16 @@ export function CheckoutPage() {
   }, [useSameAddress, shipmentAddress])
 
   const handleShipmentAddressChange = (field) => (e) => {
-    const value = e.target.value
-    setShipmentAddress(prev => ({ ...prev, [field]: value }))
+    const sanitizedValue = sanitizeInput(e.target.value)
+    setShipmentAddress(prev => ({ ...prev, [field]: sanitizedValue }))
     if (useSameAddress) {
-      setInvoiceAddress(prev => ({ ...prev, [field]: value }))
+      setInvoiceAddress(prev => ({ ...prev, [field]: sanitizedValue }))
     }
   }
 
   const handleInvoiceAddressChange = (field) => (e) => {
-    setInvoiceAddress(prev => ({ ...prev, [field]: e.target.value }))
+    const sanitizedValue = sanitizeInput(e.target.value)
+    setInvoiceAddress(prev => ({ ...prev, [field]: sanitizedValue }))
   }
 
   const handleSubmit = async (e) => {
@@ -216,7 +248,7 @@ export function CheckoutPage() {
       }
     })
 
-    // Clean address objects - use empty string for missing fields
+    // Clean and sanitize address objects
     const cleanAddress = (address) => {
       const cleaned = {}
       const defaultFields = {
@@ -232,13 +264,15 @@ export function CheckoutPage() {
       }
       
       Object.keys(defaultFields).forEach(key => {
-        cleaned[key] = address[key] || defaultFields[key]
+        const value = address[key] || defaultFields[key]
+        // Sanitize all address fields
+        cleaned[key] = typeof value === 'string' ? sanitizeInput(value) : value
       })
       
       return cleaned
     }
 
-    // Prepare order data
+    // Prepare order data with sanitized addresses
     const orderData = {
       userId: finalUserId,
       order_items: orderItems,
@@ -260,6 +294,33 @@ export function CheckoutPage() {
       setLoading(true)
       
       await orderService.createOrder(orderData)
+      
+      // Clear sensitive data from memory
+      clearSensitiveData(orderData)
+      
+      // Clear form addresses
+      setShipmentAddress({
+        fullName: '',
+        email: '',
+        street: '',
+        city: '',
+        region: '',
+        postalCode: '',
+        country: '',
+        phoneNumber: '',
+        companyName: ''
+      })
+      setInvoiceAddress({
+        fullName: '',
+        email: '',
+        street: '',
+        city: '',
+        region: '',
+        postalCode: '',
+        country: '',
+        phoneNumber: '',
+        companyName: ''
+      })
       
       // Clear cart and show success toast
       clearCart()
