@@ -250,6 +250,7 @@ export function ProductPage() {
 
   return (
     <div className="container section">
+      {/* Main Product Info Section - Image and Details Side by Side on Large Screens */}
       <div className="product-layout">
         <div style={{ borderRadius: ".5rem", overflow: "hidden" }}>
           {allImages.length > 1 ? (
@@ -360,146 +361,12 @@ export function ProductPage() {
             </div>
           )}
 
-          {/* Product Features Dropdown */}
-          {productFeatures.length > 0 && (
-            <div style={{ marginTop: "1.5rem" }}>
-              <button
-                onClick={() => toggleDropdown('productFeatures')}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  background: '#f3f4f6',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                  fontWeight: 500
-                }}
-              >
-                <span>{t('productFeatures')}</span>
-                <span style={{ transition: 'transform 0.2s', transform: openDropdown.productFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
-                  <FaAngleDown />
-                </span>
-              </button>
-              {openDropdown.productFeatures && (
-                <div style={{
-                  marginTop: '0.5rem',
-                  padding: '1rem',
-                  background: '#ffffff',
-                  borderTop: '2px solid #e5e7eb',
-                  borderBottom: '2px solid #e5e7eb',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  borderRadius: '0'
-                }}>
-                  <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
-                    {displayProductFeatures.map((feature, idx) => (
-                      <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
-                        {translating ? '...' : feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+          {/* Price Display */}
+          <div style={{ marginTop: "1.5rem" }}>
+            <div style={{ fontSize: "clamp(1.5rem, 4vw, 2rem)", fontWeight: 700, color: "#111827" }}>
+              CHF {((product?.price || 0) * quantity).toFixed(2)}
             </div>
-          )}
-
-          {/* Shipment Features Dropdown */}
-          {shipmentFeatures.length > 0 && (
-            <div style={{ marginTop: "1.5rem" }}>
-              <button
-                onClick={() => toggleDropdown('shipmentFeatures')}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  background: '#f3f4f6',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                  fontWeight: 500
-                }}
-              >
-                <span>{t('shipmentFeatures')}</span>
-                <span style={{ transition: 'transform 0.2s', transform: openDropdown.shipmentFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
-                  <FaAngleDown />
-                </span>
-              </button>
-              {openDropdown.shipmentFeatures && (
-                <div style={{
-                  marginTop: '0.5rem',
-                  padding: '1rem',
-                  background: '#ffffff',
-                  borderTop: '2px solid #e5e7eb',
-                  borderBottom: '2px solid #e5e7eb',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  borderRadius: '0'
-                }}>
-                  <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
-                    {displayShipmentFeatures.map((feature, idx) => (
-                      <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
-                        {translating ? '...' : feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Delivery Features Dropdown */}
-          {deliveryFeatures.length > 0 && (
-            <div style={{ marginTop: "1.5rem" }}>
-              <button
-                onClick={() => toggleDropdown('deliveryFeatures')}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  background: '#f3f4f6',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                  fontWeight: 500
-                }}
-              >
-                <span>{t('deliveryFeatures')}</span>
-                <span style={{ transition: 'transform 0.2s', transform: openDropdown.deliveryFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
-                  <FaAngleDown />
-                </span>
-              </button>
-              {openDropdown.deliveryFeatures && (
-                <div style={{
-                  marginTop: '0.5rem',
-                  padding: '1rem',
-                  background: '#ffffff',
-                  borderTop: '2px solid #e5e7eb',
-                  borderBottom: '2px solid #e5e7eb',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  borderRadius: '0'
-                }}>
-                  <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
-                    {displayDeliveryFeatures.map((feature, idx) => (
-                      <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
-                        {translating ? '...' : feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
+          </div>
 
           <div style={{ marginTop: "1.5rem" }}>
             <div
@@ -604,6 +471,155 @@ export function ProductPage() {
             </button>
           </div>
         </div>
+
+        {/* Features Section - Below Image on All Screens, Same Width as Image */}
+        {(productFeatures.length > 0 || shipmentFeatures.length > 0 || deliveryFeatures.length > 0) && (
+          <div className="product-features-section">
+          {/* Product Features Dropdown */}
+          {productFeatures.length > 0 && (
+            <div style={{ marginTop: "0" }}>
+              <button
+                onClick={() => toggleDropdown('productFeatures')}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  background: 'white',
+                  border: 'none',
+                  borderBottom: '2px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                  fontWeight: 500
+                }}
+              >
+                <span>{t('productFeatures')}</span>
+                <span style={{ transition: 'transform 0.2s', transform: openDropdown.productFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
+                  <FaAngleDown />
+                </span>
+              </button>
+              {openDropdown.productFeatures && (
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '1rem',
+                  background: '#ffffff',
+                  // borderTop: '2px solid #e5e7eb',
+                  // borderBottom: '2px solid #e5e7eb',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  borderRadius: '0'
+                }}>
+                  <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
+                    {displayProductFeatures.map((feature, idx) => (
+                      <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
+                        {translating ? '...' : feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Shipment Features Dropdown */}
+          {shipmentFeatures.length > 0 && (
+            <div style={{ marginTop: "1.5rem" }}>
+              <button
+                onClick={() => toggleDropdown('shipmentFeatures')}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  background: 'white',
+                  border: 'none',
+                  borderBottom: '2px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                  fontWeight: 500
+                }}
+              >
+                <span>{t('shipmentFeatures')}</span>
+                <span style={{ transition: 'transform 0.2s', transform: openDropdown.shipmentFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
+                  <FaAngleDown />
+                </span>
+              </button>
+              {openDropdown.shipmentFeatures && (
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '1rem',
+                  background: '#ffffff',
+                  // borderTop: '2px solid #e5e7eb',
+                  // borderBottom: '2px solid #e5e7eb',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  borderRadius: '0'
+                }}>
+                  <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
+                    {displayShipmentFeatures.map((feature, idx) => (
+                      <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
+                        {translating ? '...' : feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Delivery Features Dropdown */}
+          {deliveryFeatures.length > 0 && (
+            <div style={{ marginTop: "1.5rem" }}>
+              <button
+                onClick={() => toggleDropdown('deliveryFeatures')}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  background: 'white',
+                  border: 'none',
+                  borderBottom: '2px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                  fontWeight: 500
+                }}
+              >
+                <span>{t('deliveryFeatures')}</span>
+                <span style={{ transition: 'transform 0.2s', transform: openDropdown.deliveryFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
+                  <FaAngleDown />
+                </span>
+              </button>
+              {openDropdown.deliveryFeatures && (
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '1rem',
+                  background: '#ffffff',
+                  // borderTop: '2px solid #e5e7eb',
+                  // borderBottom: '2px solid #e5e7eb',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  borderRadius: '0'
+                }}>
+                  <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
+                    {displayDeliveryFeatures.map((feature, idx) => (
+                      <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
+                        {translating ? '...' : feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        )}
       </div>
 
       {/* BAMOS Certificate for Canakkale Domates - Separate Section */}

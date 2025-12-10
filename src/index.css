@@ -481,6 +481,16 @@ img {
     grid-template-columns: 1fr 1fr;
   }
 }
+.product-features-section {
+  width: 100%;
+  margin-top: 3rem;
+}
+@media (min-width: 1024px) {
+  .product-features-section {
+    grid-column: 1; /* Only span the first column (image column) */
+    max-width: 100%;
+  }
+}
 .product-page-image {
   width: 100%;
   height: auto;

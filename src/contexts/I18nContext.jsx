@@ -3,7 +3,7 @@ import { createContext, useContext, useMemo, useState } from 'react'
 const I18nContext = createContext(null)
 
 const translations = {
-  de: {©
+  de: {
     // Navigation & General
     shop: 'Shop',
     cart: 'Warenkorb',
