@@ -24,20 +24,14 @@ export function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [variantId, setVariantId] = useState(undefined);
   const [quantity, setQuantity] = useState(1);
-  const [openDropdown, setOpenDropdown] = useState({
-    productFeatures: false,
-    shipmentFeatures: false,
-    deliveryFeatures: false
-  });
+  const [openDropdown, setOpenDropdown] = useState({});
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   
   // Translated content state
   const [translatedContent, setTranslatedContent] = useState({
     title: null,
     description: null,
-    productFeatures: null,
-    shipmentFeatures: null,
-    deliveryFeatures: null
+    features: null
   });
   const [translating, setTranslating] = useState(false);
 
@@ -63,12 +57,9 @@ export function ProductPage() {
 
   const product = apiProduct || fallbackProduct;
 
-  // Extract features from product (can be in features object or root level)
-  const features = product?.features || {};
-  const productFeatures = features.product_features || product?.product_features || [];
-  const shipmentFeatures = features.shipment_features || product?.shipment_features || [];
-  const deliveryFeatures = features.delivery_features || product?.delivery_features || [];
-  const descriptionText = features.description || product?.description || '';
+  // Extract features from product - new format: array of feature objects
+  const features = Array.isArray(product?.features) ? product?.features : [];
+  const descriptionText = product?.description || '';
 
   // Translate product content when language changes or product loads
   useEffect(() => {
@@ -78,22 +69,14 @@ export function ProductPage() {
       // First, check if backend already has translations for this language
       const backendTitle = product[`title_${lang}`];
       const backendDescription = product[`description_${lang}`];
-      const backendProductFeatures = product[`product_features_${lang}`];
-      const backendShipmentFeatures = product[`shipment_features_${lang}`];
-      const backendDeliveryFeatures = product[`delivery_features_${lang}`];
       
       // If backend has translations, use them directly (no API calls needed)
-      if (backendTitle || backendDescription || 
-          (Array.isArray(backendProductFeatures) && backendProductFeatures.length > 0) ||
-          (Array.isArray(backendShipmentFeatures) && backendShipmentFeatures.length > 0) ||
-          (Array.isArray(backendDeliveryFeatures) && backendDeliveryFeatures.length > 0)) {
+      if (backendTitle || backendDescription) {
         console.log('✅ Using backend translations for language:', lang);
         setTranslatedContent({
           title: backendTitle || null,
           description: backendDescription || null,
-          productFeatures: Array.isArray(backendProductFeatures) ? backendProductFeatures : null,
-          shipmentFeatures: Array.isArray(backendShipmentFeatures) ? backendShipmentFeatures : null,
-          deliveryFeatures: Array.isArray(backendDeliveryFeatures) ? backendDeliveryFeatures : null
+          features: null
         });
         setTranslating(false);
         return;
@@ -104,9 +87,7 @@ export function ProductPage() {
         setTranslatedContent({
           title: null,
           description: null,
-          productFeatures: null,
-          shipmentFeatures: null,
-          deliveryFeatures: null
+          features: null
         });
         setTranslating(false);
         return;
@@ -118,24 +99,19 @@ export function ProductPage() {
       
       if (!hasGoogleApiKey) {
         // No Google API key and no backend translations - use original content
-        // MyMemory API has strict rate limits, so we don't use it for runtime translation
         if (import.meta.env.DEV) {
           console.log(`ℹ️ No backend translations found for ${lang} and no Google Translate API key. Using original content.`);
-          console.log('💡 Tip: Add VITE_GOOGLE_TRANSLATE_API_KEY to enable runtime translation, or add translations via AddProductPage.');
         }
         setTranslatedContent({
           title: null,
           description: null,
-          productFeatures: null,
-          shipmentFeatures: null,
-          deliveryFeatures: null
+          features: null
         });
         setTranslating(false);
         return;
       }
       
       // Google Translate API key available - translate on-the-fly
-      // Only use Google Translate, never MyMemory for runtime translation
       console.log('⚠️ No backend translations found, translating on-the-fly with Google Translate for:', lang);
       setTranslating(true);
       try {
@@ -147,26 +123,11 @@ export function ProductPage() {
         if (descriptionText) {
           translatedDescription = await translateText(descriptionText, lang, 'tr');
         }
-        
-        // Translate features arrays
-        const translatedProductFeatures = productFeatures.length > 0
-          ? await translateBatch(productFeatures, lang, 'tr')
-          : null;
-        
-        const translatedShipmentFeatures = shipmentFeatures.length > 0
-          ? await translateBatch(shipmentFeatures, lang, 'tr')
-          : null;
-        
-        const translatedDeliveryFeatures = deliveryFeatures.length > 0
-          ? await translateBatch(deliveryFeatures, lang, 'tr')
-          : null;
 
         setTranslatedContent({
           title: translatedTitle,
           description: translatedDescription,
-          productFeatures: translatedProductFeatures,
-          shipmentFeatures: translatedShipmentFeatures,
-          deliveryFeatures: translatedDeliveryFeatures
+          features: null
         });
       } catch (error) {
         console.error('Translation error:', error);
@@ -174,9 +135,7 @@ export function ProductPage() {
         setTranslatedContent({
           title: null,
           description: null,
-          productFeatures: null,
-          shipmentFeatures: null,
-          deliveryFeatures: null
+          features: null
         });
       } finally {
         setTranslating(false);
@@ -184,7 +143,7 @@ export function ProductPage() {
     };
 
     translateProductContent();
-  }, [product, lang, descriptionText, productFeatures, shipmentFeatures, deliveryFeatures]);
+  }, [product, lang, descriptionText]);
 
   // Parse description to split numbered items into separate lines
   const parseDescription = (desc) => {
@@ -206,9 +165,7 @@ export function ProductPage() {
   // Use translated content if available, otherwise use original
   const displayTitle = translatedContent.title || product?.title || '';
   const displayDescription = translatedContent.description || descriptionText || '';
-  const displayProductFeatures = translatedContent.productFeatures || productFeatures || [];
-  const displayShipmentFeatures = translatedContent.shipmentFeatures || shipmentFeatures || [];
-  const displayDeliveryFeatures = translatedContent.deliveryFeatures || deliveryFeatures || [];
+  const displayFeatures = features || [];
   
   const descriptionItems = displayDescription ? parseDescription(displayDescription) : null;
 
@@ -235,10 +192,10 @@ export function ProductPage() {
     }
   }, [inCart?.quantity, currentVariantId, product?.id, quantity]); // Sadece sepetteki miktar veya variant değiştiğinde
 
-  const toggleDropdown = (type) => {
+  const toggleDropdown = (featureId) => {
     setOpenDropdown(prev => ({
       ...prev,
-      [type]: !prev[type]
+      [featureId]: !prev[featureId]
     }));
   };
 
@@ -475,152 +432,69 @@ export function ProductPage() {
         </div>
 
         {/* Features Section - Below Image on All Screens, Same Width as Image */}
-        {(productFeatures.length > 0 || shipmentFeatures.length > 0 || deliveryFeatures.length > 0) && (
+        {displayFeatures.length > 0 && (
           <div className="product-features-section">
-          {/* Product Features Dropdown */}
-          {productFeatures.length > 0 && (
-            <div style={{ marginTop: "0" }}>
-              <button
-                onClick={() => toggleDropdown('productFeatures')}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  background: 'white',
-                  border: 'none',
-                  borderBottom: '2px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                  fontWeight: 500
-                }}
-              >
-                <span>{t('productFeatures')}</span>
-                <span style={{ transition: 'transform 0.2s', transform: openDropdown.productFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
-                  <FaAngleDown />
-                </span>
-              </button>
-              {openDropdown.productFeatures && (
-                <div style={{
-                  marginTop: '0.5rem',
-                  padding: '1rem',
-                  background: '#ffffff',
-                  // borderTop: '2px solid #e5e7eb',
-                  // borderBottom: '2px solid #e5e7eb',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  borderRadius: '0'
-                }}>
-                  <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
-                    {displayProductFeatures.map((feature, idx) => (
-                      <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
-                        {translating ? '...' : feature}
-                      </li>
-                    ))}
-                  </ul>
+            {displayFeatures.map((feature) => {
+              const featureId = feature.id || `feature-${feature.type}-${feature.title}`;
+              const isOpen = openDropdown[featureId] || false;
+              const substances = feature.substances || [];
+              
+              return (
+                <div key={featureId} style={{ marginTop: displayFeatures.indexOf(feature) === 0 ? "0" : "1.5rem" }}>
+                  {/* Substances Dropdown */}
+                  {substances.length > 0 && (
+                    <>
+                      <button
+                        onClick={() => toggleDropdown(featureId)}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem 1rem',
+                          background: 'white',
+                          border: 'none',
+                          borderBottom: '2px solid #e5e7eb',
+                          borderRadius: '0.5rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                          fontWeight: 500
+                        }}
+                      >
+                        <span>{feature.type}</span>
+                        <span style={{ 
+                          transition: 'transform 0.2s', 
+                          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', 
+                          display: 'flex', 
+                          alignItems: 'center' 
+                        }}>
+                          <FaAngleDown />
+                        </span>
+                      </button>
+                      {isOpen && (
+                        <div style={{
+                          marginTop: '0.5rem',
+                          padding: '1rem',
+                          background: '#ffffff',
+                          borderLeft: 'none',
+                          borderRight: 'none',
+                          borderRadius: '0'
+                        }}>
+                          <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
+                            {substances.map((substance, idx) => (
+                              <li key={substance.id || idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
+                                {substance.description}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Shipment Features Dropdown */}
-          {shipmentFeatures.length > 0 && (
-            <div style={{ marginTop: "1.5rem" }}>
-              <button
-                onClick={() => toggleDropdown('shipmentFeatures')}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  background: 'white',
-                  border: 'none',
-                  borderBottom: '2px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                  fontWeight: 500
-                }}
-              >
-                <span>{t('shipmentFeatures')}</span>
-                <span style={{ transition: 'transform 0.2s', transform: openDropdown.shipmentFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
-                  <FaAngleDown />
-                </span>
-              </button>
-              {openDropdown.shipmentFeatures && (
-                <div style={{
-                  marginTop: '0.5rem',
-                  padding: '1rem',
-                  background: '#ffffff',
-                  // borderTop: '2px solid #e5e7eb',
-                  // borderBottom: '2px solid #e5e7eb',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  borderRadius: '0'
-                }}>
-                  <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
-                    {displayShipmentFeatures.map((feature, idx) => (
-                      <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
-                        {translating ? '...' : feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Delivery Features Dropdown */}
-          {deliveryFeatures.length > 0 && (
-            <div style={{ marginTop: "1.5rem" }}>
-              <button
-                onClick={() => toggleDropdown('deliveryFeatures')}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  background: 'white',
-                  border: 'none',
-                  borderBottom: '2px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                  fontWeight: 500
-                }}
-              >
-                <span>{t('deliveryFeatures')}</span>
-                <span style={{ transition: 'transform 0.2s', transform: openDropdown.deliveryFeatures ? 'rotate(180deg)' : 'rotate(0deg)', display: 'flex', alignItems: 'center' }}>
-                  <FaAngleDown />
-                </span>
-              </button>
-              {openDropdown.deliveryFeatures && (
-                <div style={{
-                  marginTop: '0.5rem',
-                  padding: '1rem',
-                  background: '#ffffff',
-                  // borderTop: '2px solid #e5e7eb',
-                  // borderBottom: '2px solid #e5e7eb',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  borderRadius: '0'
-                }}>
-                  <ul style={{ margin: 0, paddingLeft: '1.5rem', listStyle: 'disc', color: '#111827' }}>
-                    {displayDeliveryFeatures.map((feature, idx) => (
-                      <li key={idx} style={{ marginBottom: '0.5rem', lineHeight: '1.6', color: '#111827' }}>
-                        {translating ? '...' : feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
         )}
       </div>
 

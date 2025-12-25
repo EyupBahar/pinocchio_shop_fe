@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useCallback } from 'react
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { isTokenExpired, getTokenExpirationTime, decodeToken } from '../services/api.js'
 import { authService } from '../services/authService.js'
+import { credentialsProvider, googleProvider, jwtCallback, sessionCallback } from '../config/authConfig.js'
 
 const AuthContext = createContext(undefined)
 
@@ -35,11 +36,63 @@ const setToken = (token) => {
   }
 }
 
-// Remove token from storage
+// Remove token from storage - comprehensive cleanup
 const removeToken = () => {
+  // Remove from localStorage
   localStorage.removeItem('authToken')
+  localStorage.removeItem('user')
+  
+  // Remove from all possible localStorage keys related to auth
+  if (typeof window !== 'undefined') {
+    Object.keys(localStorage).forEach(key => {
+      if (key.toLowerCase().includes('token') || 
+          key.toLowerCase().includes('auth') || 
+          key.toLowerCase().includes('user') ||
+          key.toLowerCase().includes('session')) {
+        localStorage.removeItem(key)
+      }
+    })
+  }
+  
+  // Remove from cookies - try all possible cookie names and paths
   if (typeof document !== 'undefined') {
+    // Remove authToken cookie with different paths
     document.cookie = 'authToken=; Path=/; Max-Age=0; SameSite=Strict; Secure'
+    document.cookie = 'authToken=; Path=/; Max-Age=0'
+    document.cookie = 'token=; Path=/; Max-Age=0; SameSite=Strict; Secure'
+    document.cookie = 'token=; Path=/; Max-Age=0'
+    document.cookie = 'accessToken=; Path=/; Max-Age=0; SameSite=Strict; Secure'
+    document.cookie = 'accessToken=; Path=/; Max-Age=0'
+    
+    // Remove all cookies that might contain tokens
+    const cookies = document.cookie.split(';')
+    cookies.forEach(cookie => {
+      const eqPos = cookie.indexOf('=')
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
+      if (name.toLowerCase().includes('token') || 
+          name.toLowerCase().includes('auth') ||
+          name.toLowerCase().includes('session')) {
+        document.cookie = `${name}=; Path=/; Max-Age=0`
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Strict; Secure`
+        document.cookie = `${name}=; Path=/; Domain=${window.location.hostname}; Max-Age=0`
+      }
+    })
+    
+    // Clear OAuth state from sessionStorage
+    sessionStorage.removeItem('oauth_state')
+    sessionStorage.removeItem('google_oauth_state')
+    sessionStorage.removeItem('keycloak_state')
+    
+    // Clear all auth-related sessionStorage
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.toLowerCase().includes('token') || 
+          key.toLowerCase().includes('auth') || 
+          key.toLowerCase().includes('oauth') ||
+          key.toLowerCase().includes('session') ||
+          key.toLowerCase().includes('user')) {
+        sessionStorage.removeItem(key)
+      }
+    })
   }
 }
 
@@ -228,38 +281,45 @@ export function AuthProvider({ children }) {
     }
   }, [checkTokenExpiration])
 
-  // Login mutation
+  // Login mutation - NextAuth.js'deki CredentialsProvider gibi
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }) => {
-      const response = await authService.login({ email, password })
-      console.log('🔍 Login API Response:', response?.data)
+      // Use credentialsProvider.authorize (NextAuth.js'deki gibi)
+      const user = await credentialsProvider.authorize({ email, password })
       
-      // Try different possible token locations in response
-      const token = response?.data?.accessToken || 
-                   response?.data?.data?.accessToken || 
-                   response?.data?.token || 
-                   response?.data?.data?.token || 
-                   response?.data?.access_token ||
-                   response?.data?.data?.access_token
-      
-      if (!token) {
-        throw new Error('No token received from login')
+      if (!user) {
+        throw new Error('Invalid credentials')
       }
-      
-      setToken(token)
-      queryClient.setQueryData(authKeys.token(), token)
-      
-      // Get customerId from login response (highest priority)
-      let userId = response?.data?.customerId || 
-                   response?.data?.data?.customerId || 
-                   response?.data?.customer_id || 
-                   response?.data?.data?.customer_id || 
-                   null
-      
-      // Load user data
-      const userData = await loadUserFromToken(token, userId)
+
+      // JWT Callback (NextAuth.js'deki gibi)
+      const token = jwtCallback(
+        {},
+        user,
+        { provider: 'credentials' }
+      )
+
+      // Store token
+      setToken(token.accessToken)
+      queryClient.setQueryData(authKeys.token(), token.accessToken)
+
+      // Session Callback (NextAuth.js'deki gibi)
+      const session = sessionCallback({}, token)
+
+      // Store user data
+      const userData = {
+        userId: user.id,
+        email: user.email,
+        username: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isUserNew: user.isUserNew,
+        provider: user.provider
+      }
+
       queryClient.setQueryData(authKeys.user(), userData)
-      
+      localStorage.setItem('user', JSON.stringify(userData))
+
       return userData
     },
     onSuccess: (userData) => {
@@ -274,20 +334,109 @@ export function AuthProvider({ children }) {
     },
   })
 
-  // Logout mutation
+  // Logout mutation - Complete cleanup of all tokens and auth data
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      removeToken()
-      localStorage.removeItem('user')
-      queryClient.setQueryData(authKeys.token(), null)
-      queryClient.setQueryData(authKeys.user(), null)
-      queryClient.clear()
-    },
-    onSuccess: () => {
+      // Stop token expiration checks
       if (tokenCheckIntervalRef.current) {
         clearInterval(tokenCheckIntervalRef.current)
         tokenCheckIntervalRef.current = null
       }
+      
+      // Remove all authentication tokens (comprehensive cleanup)
+      removeToken()
+      
+      // Clear React Query cache - remove all auth-related data
+      queryClient.setQueryData(authKeys.token(), null)
+      queryClient.setQueryData(authKeys.user(), null)
+      
+      // Clear all queries related to auth
+      queryClient.removeQueries({ queryKey: authKeys.all })
+      
+      // Clear entire cache to ensure no token data remains
+      queryClient.clear()
+      
+      // Force refetch to ensure fresh state
+      queryClient.invalidateQueries()
+      
+      // Additional cleanup for any remaining data
+      if (typeof window !== 'undefined') {
+        // Clear IndexedDB if used (future-proof)
+        if ('indexedDB' in window) {
+          try {
+            indexedDB.databases().then(databases => {
+              databases.forEach(db => {
+                if (db.name && (db.name.includes('auth') || db.name.includes('token'))) {
+                  indexedDB.deleteDatabase(db.name)
+                }
+              })
+            })
+          } catch (e) {
+            // IndexedDB not available or error
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      // Ensure token check is stopped
+      if (tokenCheckIntervalRef.current) {
+        clearInterval(tokenCheckIntervalRef.current)
+        tokenCheckIntervalRef.current = null
+      }
+    },
+  })
+
+  // Google OAuth login mutation - NextAuth.js'deki GoogleProvider gibi
+  const googleLoginMutation = useMutation({
+    mutationFn: async ({ idToken, accessToken }) => {
+      // Use googleProvider.authorize (NextAuth.js'deki gibi)
+      const googleResponse = { credential: idToken, access_token: accessToken }
+      const user = await googleProvider.authorize(googleResponse)
+      
+      if (!user) {
+        throw new Error('Google authentication failed')
+      }
+
+      // JWT Callback (NextAuth.js'deki gibi)
+      const token = jwtCallback(
+        {},
+        user,
+        { provider: 'google' }
+      )
+
+      // Store token
+      setToken(token.accessToken)
+      queryClient.setQueryData(authKeys.token(), token.accessToken)
+
+      // Session Callback (NextAuth.js'deki gibi)
+      const session = sessionCallback({}, token)
+
+      // Store user data
+      const userData = {
+        userId: user.id,
+        email: user.email,
+        username: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isUserNew: user.isUserNew,
+        provider: user.provider
+      }
+
+      queryClient.setQueryData(authKeys.user(), userData)
+      localStorage.setItem('user', JSON.stringify(userData))
+
+      return userData
+    },
+    onSuccess: (userData) => {
+      queryClient.setQueryData(authKeys.user(), userData)
+      setupTokenCheck()
+    },
+    onError: (error) => {
+      console.error('Google login error:', error)
+      removeToken()
+      queryClient.setQueryData(authKeys.token(), null)
+      queryClient.setQueryData(authKeys.user(), null)
     },
   })
 
@@ -356,10 +505,31 @@ export function AuthProvider({ children }) {
     updateUserMutation.mutate()
   }
 
-  // Sign in with Google (placeholder)
-  const signInWithGoogle = () => {
-    const googleUser = { username: 'Google User', email: 'user@gmail.com' }
-    login(googleUser)
+  // Sign in function - NextAuth.js'deki signIn gibi
+  const signIn = async (provider, credentials) => {
+    if (provider === 'credentials') {
+      return await loginMutation.mutateAsync(credentials)
+    } else if (provider === 'google') {
+      return await signInWithGoogle(credentials)
+    } else {
+      throw new Error(`Unsupported provider: ${provider}`)
+    }
+  }
+
+  // Sign in with Google - NextAuth.js'deki gibi
+  const signInWithGoogle = async (googleResponse) => {
+    if (!googleResponse || !googleResponse.credential) {
+      throw new Error('Invalid Google OAuth response')
+    }
+    
+    // GoogleLogin component returns credential (idToken) in the response
+    const idToken = googleResponse.credential
+    // For GoogleLogin, we don't get access_token directly, only idToken
+    // Backend will verify idToken and exchange with Keycloak token
+    const accessToken = null
+    
+    // Call Google login mutation
+    return await googleLoginMutation.mutateAsync({ idToken, accessToken })
   }
 
   return (
@@ -368,9 +538,11 @@ export function AuthProvider({ children }) {
       isLoading, 
       login, 
       logout, 
+      signIn, // NextAuth.js'deki signIn gibi
       signInWithGoogle,
       updateUser,
       loginMutation,
+      googleLoginMutation,
       logoutMutation,
       updateUserMutation,
       refetchUser,
@@ -390,3 +562,4 @@ export function useAuth() {
   }
   return context
 }
+

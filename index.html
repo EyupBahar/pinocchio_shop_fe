@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Content Security Policy for XSS protection -->
     <!-- Development: Allow WebSocket for Vite HMR, Production: Strict CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; frame-src 'self' https://www.youtube.com https://youtube.com; connect-src 'self' ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* https://api.zero2heros.ch https://translation.googleapis.com https://api.mymemory.translated.net;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://*.googleapis.com blob:; script-src-elem 'self' 'unsafe-inline' https://accounts.google.com https://*.googleapis.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://accounts.google.com; img-src 'self' data: https:; font-src 'self' data:; frame-src 'self' https://www.youtube.com https://youtube.com https://accounts.google.com; connect-src 'self' ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* https://api.zero2heros.ch https://keycloak.zero2heros.ch https://*.zero2heros.ch https://translation.googleapis.com https://api.mymemory.translated.net https://accounts.google.com https://oauth2.googleapis.com https://*.googleapis.com;">
     <title>pinocchio_shop</title>
   </head>
   <body>

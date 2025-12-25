@@ -47,14 +47,41 @@ export const orderService = {
   // Get user orders
   getUserOrders: (userId) => {
     const url = `/Shop/Orders/${userId}/GetUserOrders`
+    console.log('🔍 getUserOrders API call:', {
+      url,
+      userId,
+      userIdType: typeof userId,
+      fullUrl: apiClient.defaults.baseURL + url
+    })
     return apiClient.get(url)
       .then(response => {
+        console.log('✅ getUserOrders success:', {
+          status: response?.status,
+          data: response?.data,
+          hasData: !!response?.data,
+          dataType: typeof response?.data
+        })
         return response
       })
       .catch(error => {
-        console.error('❌ orderService.getUserOrders error:', error)
-        console.error('Error URL:', error?.config?.url)
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        console.error('❌ orderService.getUserOrders error')
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        console.error('Request URL:', error?.config?.url)
+        console.error('Full URL:', error?.config?.baseURL + error?.config?.url)
+        console.error('User ID:', userId)
+        console.error('User ID Type:', typeof userId)
         console.error('Error status:', error?.response?.status)
+        console.error('Error message:', error?.message)
+        console.error('Error response data:', error?.response?.data)
+        console.error('Error code:', error?.code)
+        console.error('Request config:', {
+          method: error?.config?.method,
+          headers: error?.config?.headers,
+          baseURL: error?.config?.baseURL,
+          url: error?.config?.url
+        })
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
         throw error
       })
   },

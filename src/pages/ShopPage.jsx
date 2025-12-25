@@ -182,16 +182,36 @@ export function ShopPage() {
     
     // Kategori mapping'i
     const categoryMapping = {
-      'single': ['1', 'single'],      // frontend single -> API'deki 1 veya single
-      'combination': ['2', 'combination'] // frontend combination -> API'deki 2 veya combination
+      'single': [1, '1', 'single'],      // frontend single -> API'deki 1 veya single
+      'combination': [2, '2', 'combination'] // frontend combination -> API'deki 2 veya combination
     }
     
     // API'den gelen ürünleri filtrele
     const filteredProducts = localizedProducts.filter((p) => {
       const validApiIds = categoryMapping[activeCategory] || [activeCategory]
-      const productCategoryRaw = p.categoryId ?? p.category ?? p.category_id
-      const productCategory = productCategoryRaw != null ? String(productCategoryRaw).toLowerCase() : ''
-      const matches = validApiIds.includes(productCategory)
+      
+      // Get category ID - can be in category.id or categoryId or category_id
+      let productCategoryId = null
+      if (p.category && typeof p.category === 'object' && p.category.id) {
+        // category is an object with id
+        productCategoryId = p.category.id
+      } else if (p.categoryId) {
+        productCategoryId = p.categoryId
+      } else if (p.category_id) {
+        productCategoryId = p.category_id
+      } else if (typeof p.category === 'number' || typeof p.category === 'string') {
+        productCategoryId = p.category
+      }
+      
+      // Check if category ID matches
+      if (productCategoryId == null) return false
+      
+      // Convert to number for comparison
+      const categoryIdNum = Number(productCategoryId)
+      const matches = validApiIds.some(validId => {
+        const validIdNum = Number(validId)
+        return categoryIdNum === validIdNum || String(productCategoryId).toLowerCase() === String(validId).toLowerCase()
+      })
       
       return matches
     })

@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { productService } from '../services/productService.js'
+import { sizeService } from '../services/sizeService.js'
 import { useI18n } from '../contexts/I18nContext.jsx'
+import { BasicInfoSection } from '../components/productForm/BasicInfoSection.jsx'
+import { ImageSection } from '../components/productForm/ImageSection.jsx'
+import { FeaturesSection } from '../components/productForm/FeaturesSection.jsx'
+import { CategorySection } from '../components/productForm/CategorySection.jsx'
+import { SizeSection } from '../components/productForm/SizeSection.jsx'
+import { FormActions } from '../components/productForm/FormActions.jsx'
+import './addProductPage.css'
 
 export function AddProductPage() {
   const navigate = useNavigate()
@@ -11,27 +19,19 @@ export function AddProductPage() {
   const { t } = useI18n()
   
   const [formData, setFormData] = useState({
-    deliveryTime: '',
-    image: '',
-    images: [],
-    rating: 0,
     title: '',
     description: '',
-    productFeatures: [],
-    shipmentFeatures: [],
-    deliveryFeatures: [],
-    price: 0,
-    discountedPrice: 0,
-    isActive: true,
-    categoryId: 0
+    price: '',
+    discountedPrice: '',
+    image: '',
+    images: [],
+    features: [],
+    category: { id: null, name: '', description: '', slug: '' },
+    categoryType: '',
+    sizeId: null
   })
   const [initialFormData, setInitialFormData] = useState(null)
-  const [originalProduct, setOriginalProduct] = useState(null) // Store original product from API
-
-  const [imageInput, setImageInput] = useState('')
-  const [productFeatureInput, setProductFeatureInput] = useState('')
-  const [shipmentFeatureInput, setShipmentFeatureInput] = useState('')
-  const [deliveryFeatureInput, setDeliveryFeatureInput] = useState('')
+  const [originalProduct, setOriginalProduct] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -46,33 +46,41 @@ export function AddProductPage() {
           const product = byIdResponse?.data?.data || byIdResponse?.data || null
           
           if (product) {
-            // Handle features structure from backend (can be in features object or root level)
-            const features = product.features || {}
             const updatedFormData = {
-              deliveryTime: product.deliveryTime || '',
-              image: product.image || '',
-              images: product.images || [],
-              rating: product.rating || 0,
               title: product.title || '',
-              description: features.description || product.description || '',
-              productFeatures: features.product_features || product.product_features || [],
-              shipmentFeatures: features.shipment_features || product.shipment_features || [],
-              deliveryFeatures: features.delivery_features || product.delivery_features || [],
-              price: product.price || 0,
-              discountedPrice: product.discountedPrice || 0,
-              isActive: product.isActive !== undefined ? product.isActive : true,
-              categoryId: product.categoryId || 0
+              description: product.description || '',
+              price: product.price ? String(product.price) : '',
+              discountedPrice: product.discountedPrice ? String(product.discountedPrice) : '',
+              image: product.image || '',
+              images: Array.isArray(product.images) ? product.images : [],
+              features: Array.isArray(product.features) ? product.features.map(f => ({
+                id: f.id,
+                type: f.type || '',
+                title: f.title || '',
+                description: f.description || '',
+                substances: Array.isArray(f.substances) ? f.substances.map(s => ({
+                  id: s.id,
+                  description: s.description || ''
+                })) : []
+              })) : [],
+              category: product.category ? {
+                id: product.category.id || null,
+                name: product.category.name || '',
+                description: product.category.description || '',
+                slug: product.category.slug || ''
+              } : { id: null, name: '', description: '', slug: '' },
+              categoryType: product.category?.id === 1 ? 'single' : product.category?.id === 2 ? 'combination' : '',
+              sizeId: product.size?.id || null
             }
             setFormData(updatedFormData)
-            setInitialFormData(updatedFormData)
-            setOriginalProduct(product) // Store original product structure
+            setInitialFormData(JSON.parse(JSON.stringify(updatedFormData)))
+            setOriginalProduct(product)
           } else {
             console.warn('⚠️ No product data found for id:', id)
             setError(`Product not found (ID: ${id})`)
           }
         } catch (err) {
           console.error('❌ Error loading product:', err)
-          console.error('❌ Error details:', err?.response)
           if (err?.response?.status === 401) {
             setError('Unauthorized. Please login to edit products.')
           } else if (err?.response?.status === 404) {
@@ -96,90 +104,28 @@ export function AddProductPage() {
     }))
   }
 
-  const handleAddImage = () => {
-    if (imageInput.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, imageInput.trim()]
-      }))
-      setImageInput('')
-    }
-  }
-
-  const handleRemoveImage = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }))
-  }
-
-  const handleAddFeature = (type) => {
-    let inputValue = ''
-    let featureKey = ''
-    
-    switch(type) {
-      case 'product':
-        inputValue = productFeatureInput
-        featureKey = 'productFeatures'
-        break
-      case 'shipment':
-        inputValue = shipmentFeatureInput
-        featureKey = 'shipmentFeatures'
-        break
-      case 'delivery':
-        inputValue = deliveryFeatureInput
-        featureKey = 'deliveryFeatures'
-        break
-    }
-
-    if (inputValue.trim()) {
-      setFormData(prev => {
-        const currentArray = prev[featureKey] || []
-        const newArray = [...currentArray, inputValue.trim()]
-        const newData = {
-          ...prev,
-          [featureKey]: newArray
-        }
-        console.log(`✅ Added ${type} feature:`, {
-          inputValue: inputValue.trim(),
-          previousArray: currentArray,
-          newArray: newArray,
-          fullFormData: newData
-        })
-        return newData
-      })
-      
-      switch(type) {
-        case 'product':
-          setProductFeatureInput('')
-          break
-        case 'shipment':
-          setShipmentFeatureInput('')
-          break
-        case 'delivery':
-          setDeliveryFeatureInput('')
-          break
+  const handleCategoryTypeChange = (categoryType) => {
+    const categoryMap = {
+      'single': {
+        id: 1,
+        name: 'Einzelstück',
+        description: '',
+        slug: 'einzelstueck'
+      },
+      'combination': {
+        id: 2,
+        name: 'Geschenksets',
+        description: '',
+        slug: 'geschenksets'
       }
     }
-  }
 
-  const handleRemoveFeature = (type, index) => {
-    let featureKey = ''
-    switch(type) {
-      case 'product':
-        featureKey = 'productFeatures'
-        break
-      case 'shipment':
-        featureKey = 'shipmentFeatures'
-        break
-      case 'delivery':
-        featureKey = 'deliveryFeatures'
-        break
-    }
-
+    const categoryData = categoryMap[categoryType] || { id: null, name: '', description: '', slug: '' }
+    
     setFormData(prev => ({
       ...prev,
-      [featureKey]: prev[featureKey].filter((_, i) => i !== index)
+      categoryType: categoryType,
+      category: categoryData
     }))
   }
 
@@ -187,160 +133,231 @@ export function AddProductPage() {
     e.preventDefault()
     setError('')
 
-    // Basic validation
     if (!formData.title || !formData.description || !formData.image) {
       setError('Please fill in all required fields (Title, Description, Image)')
       return
     }
 
-    // Validate price is greater than 0
     if (!formData.price || Number(formData.price) <= 0) {
       setError('Price must be greater than 0')
+      return
+    }
+
+    if (!formData.category.id || !formData.category.name) {
+      setError('Category ID and name are required')
       return
     }
 
     try {
       setLoading(true)
       
-      // Debug: Log formData state
-      console.log('🔍 FormData state (BEFORE processing):', {
-        productFeatures: formData.productFeatures,
-        shipmentFeatures: formData.shipmentFeatures,
-        deliveryFeatures: formData.deliveryFeatures,
-        productFeaturesType: typeof formData.productFeatures,
-        productFeaturesIsArray: Array.isArray(formData.productFeatures),
-        fullFormData: formData
-      })
+      const discountedPriceValue = formData.discountedPrice && formData.discountedPrice.trim() 
+        ? String(Number(formData.discountedPrice).toFixed(2)) 
+        : null
       
-      // Ensure arrays are properly set (not undefined) - backend expects string arrays
-      const productFeatures = Array.isArray(formData.productFeatures) ? formData.productFeatures : []
-      const shipmentFeatures = Array.isArray(formData.shipmentFeatures) ? formData.shipmentFeatures : []
-      const deliveryFeatures = Array.isArray(formData.deliveryFeatures) ? formData.deliveryFeatures : []
+      const formattedFeatures = formData.features.map(f => {
+        const feature = {
+          type: f.type.trim(),
+          title: f.title.trim(),
+          description: f.description.trim() || '',
+          substances: f.substances && Array.isArray(f.substances)
+            ? f.substances.map(s => ({
+                id: s.id,
+                description: s.description.trim()
+              })).filter(s => s.description)
+            : []
+        }
+        if (f.id) {
+          feature.id = f.id
+        }
+        return feature
+      }).filter(f => f.type)
       
-      console.log('🔍 Processed features:', {
-        productFeatures,
-        shipmentFeatures,
-        deliveryFeatures,
-        productFeaturesLength: productFeatures.length,
-        shipmentFeaturesLength: shipmentFeatures.length,
-        deliveryFeaturesLength: deliveryFeatures.length
-      })
-      
-      // Send all fields at root level, not nested in features object
-      // Send only original data without translations
-      const productData = {
-        deliveryTime: String(formData.deliveryTime || ''),
-        image: formData.image.trim(),
-        images: Array.isArray(formData.images) ? formData.images : [],
-        rating: Number(formData.rating) || 0,
-        title: formData.title.trim(),
-        description: formData.description.trim() || '',
-        price: Number(formData.price) || 0,
-        discountedPrice: Number(formData.discountedPrice) || 0,
-        isActive: formData.isActive !== undefined ? formData.isActive : true,
-        categoryId: Number(formData.categoryId) || 0,
-        product_features: productFeatures,
-        shipment_features: shipmentFeatures,
-        delivery_features: deliveryFeatures
+      // Get sizes for size formatting
+      let formattedSize = null
+      if (formData.sizeId) {
+        try {
+          const sizesResponse = await sizeService.getAllSizes()
+          const sizesData = sizesResponse.data?.data || sizesResponse.data || []
+          const sizesArray = Array.isArray(sizesData) ? sizesData : []
+          const selectedSize = sizesArray.find(s => s.id === formData.sizeId)
+          
+          if (selectedSize) {
+            formattedSize = {
+              id: Number(selectedSize.id),
+              size: selectedSize.size || '',
+              sizeScaleType: selectedSize.sizeScaleType ? {
+                id: Number(selectedSize.sizeScaleType.id),
+                name: selectedSize.sizeScaleType.name || '',
+                code: selectedSize.sizeScaleType.code || ''
+              } : null,
+              sizeCode: selectedSize.sizeCode || ''
+            }
+          }
+        } catch (err) {
+          console.error('❌ Error loading sizes for submit:', err)
+        }
       }
       
-      console.log('📤 Sending product data:', productData)
+      const categorySlug = formData.category.slug.trim() || formData.category.name.toLowerCase().replace(/\s+/g, '-')
+      
+      const productData = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        price: String(Number(formData.price).toFixed(2)),
+        image: formData.image.trim(),
+        images: Array.isArray(formData.images) ? formData.images.filter(img => img.trim()) : [],
+        features: formattedFeatures,
+        category: {
+          id: Number(formData.category.id),
+          name: formData.category.name.trim(),
+          description: formData.category.description.trim() || '',
+          slug: categorySlug
+        }
+      }
+      
+      if (discountedPriceValue) {
+        productData.discountedPrice = discountedPriceValue
+      }
+      
+      if (formattedSize) {
+        productData.size = formattedSize
+      }
 
       if (isEditMode) {
-        // Only send changed fields
         if (!initialFormData || !originalProduct) {
-          setError(t('initialDataNotLoaded'))
+          setError('Initial data not loaded')
           setLoading(false)
           return
         }
 
         const changedFields = {}
         
-        // Compare each field and add to changedFields if different
-        // Format according to the required structure (root level, not nested)
-        if (formData.deliveryTime !== initialFormData.deliveryTime) {
-          changedFields.deliveryTime = String(formData.deliveryTime || '')
+        if (formData.title !== initialFormData.title) {
+          changedFields.title = formData.title.trim()
+        }
+        if (formData.description !== initialFormData.description) {
+          changedFields.description = formData.description.trim()
+        }
+        if (formData.price !== initialFormData.price) {
+          changedFields.price = String(Number(formData.price).toFixed(2))
+        }
+        if (formData.discountedPrice !== initialFormData.discountedPrice) {
+          const discountedPriceValue = formData.discountedPrice && formData.discountedPrice.trim() 
+            ? String(Number(formData.discountedPrice).toFixed(2)) 
+            : null
+          changedFields.discountedPrice = discountedPriceValue
         }
         if (formData.image !== initialFormData.image) {
           changedFields.image = formData.image.trim()
         }
         if (JSON.stringify(formData.images) !== JSON.stringify(initialFormData.images)) {
-          changedFields.images = Array.isArray(formData.images) ? formData.images : []
+          changedFields.images = Array.isArray(formData.images) ? formData.images.filter(img => img.trim()) : []
         }
-        if (Number(formData.rating) !== Number(initialFormData.rating)) {
-          changedFields.rating = Number(formData.rating) || 0
+        if (JSON.stringify(formData.features) !== JSON.stringify(initialFormData.features)) {
+          changedFields.features = formData.features.map(f => ({
+            type: f.type.trim(),
+            title: f.title.trim(),
+            description: f.description.trim() || '',
+            substances: f.substances.map(s => ({
+              description: s.description.trim()
+            })).filter(s => s.description)
+          })).filter(f => f.type && f.title)
         }
-        if (formData.title !== initialFormData.title) {
-          changedFields.title = formData.title.trim()
+        if (JSON.stringify(formData.category) !== JSON.stringify(initialFormData.category)) {
+          changedFields.category = {
+            id: Number(formData.category.id),
+            name: formData.category.name.trim(),
+            description: formData.category.description.trim() || '',
+            slug: formData.category.slug.trim() || formData.category.name.toLowerCase().replace(/\s+/g, '-')
+          }
         }
-        if (Number(formData.price) !== Number(initialFormData.price)) {
-          changedFields.price = Number(formData.price) || 0
-        }
-        if (Number(formData.discountedPrice) !== Number(initialFormData.discountedPrice)) {
-          changedFields.discountedPrice = Number(formData.discountedPrice) || 0
-        }
-        if (formData.isActive !== initialFormData.isActive) {
-          changedFields.isActive = formData.isActive !== undefined ? formData.isActive : true
-        }
-        if (Number(formData.categoryId) !== Number(initialFormData.categoryId)) {
-          changedFields.categoryId = Number(formData.categoryId) || 0
-        }
-
-        // Check description and features changes - add to root level, not nested
-        if (formData.description !== initialFormData.description) {
-          changedFields.description = formData.description.trim() || ''
-        }
-        if (JSON.stringify(productFeatures) !== JSON.stringify(initialFormData.productFeatures || [])) {
-          changedFields.product_features = productFeatures
-        }
-        if (JSON.stringify(shipmentFeatures) !== JSON.stringify(initialFormData.shipmentFeatures || [])) {
-          changedFields.shipment_features = shipmentFeatures
-        }
-        if (JSON.stringify(deliveryFeatures) !== JSON.stringify(initialFormData.deliveryFeatures || [])) {
-          changedFields.delivery_features = deliveryFeatures
+        if (formData.sizeId !== initialFormData.sizeId) {
+          if (formData.sizeId && formattedSize) {
+            changedFields.size = formattedSize
+          } else {
+            changedFields.size = null
+          }
         }
 
-        // Only send if there are changes
         if (Object.keys(changedFields).length === 0) {
-          setError(t('noChangesDetected'))
+          setError('No changes detected')
           setLoading(false)
           return
         }
 
-        // Add ID to changedFields for update
-        const updateData = { ...changedFields, id: Number(id) }
-        console.log('📤 Sending only changed fields:', JSON.stringify(updateData, null, 2))
-        await productService.update(id, updateData)
+        await productService.update(id, changedFields)
         toast.success(t('productUpdatedSuccessfully'), {
           position: 'top-right',
           autoClose: 3000,
         })
       } else {
-        await productService.create(productData)
-        toast.success(t('productAddedSuccessfully'), {
-          position: 'top-right',
-          autoClose: 3000,
-        })
+        try {
+          await productService.create(productData)
+          toast.success(t('productAddedSuccessfully'), {
+            position: 'top-right',
+            autoClose: 3000,
+          })
+          setTimeout(() => {
+            navigate('/shop')
+          }, 2000)
+        } catch (createErr) {
+          if (createErr.response?.status === 500) {
+            console.log('🔄 500 error received. Trying alternative format with categoryId only...')
+            const alternativeData = {
+              ...productData,
+              categoryId: Number(formData.category.id)
+            }
+            delete alternativeData.category
+            
+            try {
+              await productService.create(alternativeData)
+              toast.success(t('productAddedSuccessfully'), {
+                position: 'top-right',
+                autoClose: 3000,
+              })
+              setTimeout(() => {
+                navigate('/shop')
+              }, 2000)
+              return
+            } catch (altErr) {
+              console.error('❌ Alternative format also failed:', altErr)
+            }
+          }
+          
+          const errorMessage = createErr.response?.data?.message || 
+                              createErr.response?.data?.error || 
+                              createErr.message || 
+                              `Server error: ${createErr.response?.status || 'Unknown'}`
+          
+          const detailedError = createErr.response?.data?.errors 
+            ? JSON.stringify(createErr.response.data.errors, null, 2)
+            : createErr.response?.data 
+            ? JSON.stringify(createErr.response.data, null, 2)
+            : null
+          
+          setError(detailedError || errorMessage)
+          toast.error(t('errorOccurredToast') + ': ' + errorMessage, {
+            position: 'top-right',
+            autoClose: 5000,
+          })
+          throw createErr
+        }
       }
-      
-      setTimeout(() => {
-        navigate('/shop')
-      }, 2000)
     } catch (err) {
       console.error('❌ Error saving product:', err)
-      console.error('❌ Full error:', JSON.stringify(err, null, 2))
-      console.error('❌ Error response:', err.response)
-      console.error('❌ Error response data:', err.response?.data)
-      console.error('❌ Error response status:', err.response?.status)
-      
-      const errorDetails = err.response?.data ? JSON.stringify(err.response.data, null, 2) : 'No details'
-      console.error('❌ Full error details:', errorDetails)
-      
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.error || 
                           err.message || 
                           `Server error: ${err.response?.status || 'Unknown'}`
-      setError(errorMessage)
+      
+      const detailedError = err.response?.data?.errors 
+        ? JSON.stringify(err.response.data.errors, null, 2)
+        : err.response?.data 
+        ? JSON.stringify(err.response.data, null, 2)
+        : null
+      
+      setError(detailedError || errorMessage)
       toast.error(t('errorOccurredToast') + ': ' + errorMessage, {
         position: 'top-right',
         autoClose: 5000,
@@ -384,7 +401,7 @@ export function AddProductPage() {
   if (loading && isEditMode) {
     return (
       <div className="container section">
-        <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 600 }}>{t('editProduct')}</h2>
+        <h2 className="page-title">{t('editProduct')}</h2>
         <div>{t('loadingProduct')}</div>
       </div>
     )
@@ -392,518 +409,51 @@ export function AddProductPage() {
 
   return (
     <div className="container section">
-      <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 600 }}>
+      <h2 className="page-title">
         {isEditMode ? t('editProduct') : t('addProduct')}
       </h2>
       
-      
       {error && (
-        <div style={{ 
-          padding: '1rem', 
-          marginBottom: '1rem', 
-          background: '#fee', 
-          color: '#c33', 
-          borderRadius: '0.5rem' 
-        }}>
+        <div className="error-message">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ maxWidth: '800px' }}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-            {t('title')} *
-          </label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              border: '1px solid #e5e7eb',
-              borderRadius: '0.5rem',
-              fontSize: '1rem'
-            }}
-            required
-          />
-        </div>
+      <form onSubmit={handleSubmit} className="product-form">
+        <BasicInfoSection 
+          formData={formData} 
+          handleChange={handleChange} 
+        />
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-            {t('description')} *
-          </label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows="4"
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              border: '1px solid #e5e7eb',
-              borderRadius: '0.5rem',
-              fontSize: '1rem',
-              resize: 'vertical'
-            }}
-            required
-          />
-        </div>
+        <ImageSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          setFormData={setFormData} 
+        />
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-            {t('productFeatures')}
-          </label>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <input
-              type="text"
-              value={productFeatureInput}
-              onChange={(e) => setProductFeatureInput(e.target.value)}
-              placeholder="Add a product feature"
-              style={{
-                flex: 1,
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem'
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleAddFeature('product')
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => handleAddFeature('product')}
-              className="btn"
-              style={{ whiteSpace: 'nowrap' }}
-            >
-              {t('add')}
-            </button>
-          </div>
-          {formData.productFeatures.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {formData.productFeatures.map((feature, index) => (
-                <div key={index} style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem',
-                  background: '#f3f4f6',
-                  padding: '0.5rem',
-                  borderRadius: '0.375rem'
-                }}>
-                  <span style={{ fontSize: '0.9rem', flex: 1 }}>{feature}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveFeature('product', index)}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: '#dc2626',
-                      cursor: 'pointer',
-                      fontSize: '1.2rem'
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <FeaturesSection 
+          formData={formData} 
+          setFormData={setFormData} 
+          setError={setError} 
+        />
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-            {t('shipmentFeatures')}
-          </label>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <input
-              type="text"
-              value={shipmentFeatureInput}
-              onChange={(e) => setShipmentFeatureInput(e.target.value)}
-              placeholder="Add a shipment feature"
-              style={{
-                flex: 1,
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem'
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleAddFeature('shipment')
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => handleAddFeature('shipment')}
-              className="btn"
-              style={{ whiteSpace: 'nowrap' }}
-            >
-              {t('add')}
-            </button>
-          </div>
-          {formData.shipmentFeatures.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {formData.shipmentFeatures.map((feature, index) => (
-                <div key={index} style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem',
-                  background: '#f3f4f6',
-                  padding: '0.5rem',
-                  borderRadius: '0.375rem'
-                }}>
-                  <span style={{ fontSize: '0.9rem', flex: 1 }}>{feature}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveFeature('shipment', index)}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: '#dc2626',
-                      cursor: 'pointer',
-                      fontSize: '1.2rem'
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <CategorySection 
+          formData={formData} 
+          handleCategoryTypeChange={handleCategoryTypeChange} 
+        />
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-            {t('deliveryFeatures')}
-          </label>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <input
-              type="text"
-              value={deliveryFeatureInput}
-              onChange={(e) => setDeliveryFeatureInput(e.target.value)}
-              placeholder="Add a delivery feature"
-              style={{
-                flex: 1,
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem'
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleAddFeature('delivery')
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => handleAddFeature('delivery')}
-              className="btn"
-              style={{ whiteSpace: 'nowrap' }}
-            >
-              {t('add')}
-            </button>
-          </div>
-          {formData.deliveryFeatures.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {formData.deliveryFeatures.map((feature, index) => (
-                <div key={index} style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem',
-                  background: '#f3f4f6',
-                  padding: '0.5rem',
-                  borderRadius: '0.375rem'
-                }}>
-                  <span style={{ fontSize: '0.9rem', flex: 1 }}>{feature}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveFeature('delivery', index)}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: '#dc2626',
-                      cursor: 'pointer',
-                      fontSize: '1.2rem'
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <SizeSection 
+          formData={formData} 
+          setFormData={setFormData} 
+          setError={setError} 
+        />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-              {t('price')} *
-            </label>
-            <input
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              min="0"
-              step="0.01"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem'
-              }}
-              required
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-              {t('discountedPrice')}
-            </label>
-            <input
-              type="number"
-              name="discountedPrice"
-              value={formData.discountedPrice}
-              onChange={handleChange}
-              min="0"
-              step="0.01"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem'
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-            {t('mainImageUrl')} *
-          </label>
-          <input
-            type="text"
-            name="image"
-            value={formData.image}
-            onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              border: '1px solid #e5e7eb',
-              borderRadius: '0.5rem',
-              fontSize: '1rem',
-              marginBottom: '1rem'
-            }}
-            required
-          />
-          {formData.image && (
-            <div style={{
-              width: '100%',
-              maxWidth: '400px',
-              border: '1px solid #e5e7eb',
-              borderRadius: '0.5rem',
-              overflow: 'hidden',
-              marginTop: '0.5rem'
-            }}>
-              <img 
-                src={formData.image} 
-                alt="Preview" 
-                style={{ 
-                  width: '100%', 
-                  height: 'auto', 
-                  display: 'block' 
-                }}
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found'
-                }}
-              />
-            </div>
-          )}
-        </div>
-
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-            {t('additionalImages')}
-          </label>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <input
-              type="text"
-              value={imageInput}
-              onChange={(e) => setImageInput(e.target.value)}
-              placeholder="https://example.com/image.jpg"
-              style={{
-                flex: 1,
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem'
-              }}
-            />
-            <button
-              type="button"
-              onClick={handleAddImage}
-              className="btn"
-              style={{ whiteSpace: 'nowrap' }}
-            >
-              {t('add')}
-            </button>
-          </div>
-          {formData.images.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {formData.images.map((img, index) => (
-                <div key={index} style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem',
-                  background: '#f3f4f6',
-                  padding: '0.5rem',
-                  borderRadius: '0.375rem'
-                }}>
-                  <span style={{ fontSize: '0.9rem' }}>{img.substring(0, 30)}...</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(index)}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: '#dc2626',
-                      cursor: 'pointer',
-                      fontSize: '1.2rem'
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-              {t('category')}
-            </label>
-            <select
-              name="categoryId"
-              value={String(formData.categoryId === 'single' ? 1 : formData.categoryId === 'combination' ? 2 : formData.categoryId || '')}
-              onChange={(e) => setFormData(prev => ({ ...prev, categoryId: Number(e.target.value) }))}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem',
-                background: '#fff'
-              }}
-              required
-            >
-              <option value="" disabled>{t('selectCategory')}</option>
-              <option value="1">{t('singleProduct')}</option>
-              <option value="2">{t('combination')}</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-              {t('rating')}
-            </label>
-            <input
-              type="number"
-              name="rating"
-              value={formData.rating}
-              onChange={handleChange}
-              min="0"
-              max="5"
-              step="0.1"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-              {t('deliveryTime')}
-            </label>
-            <input
-              type="text"
-              name="deliveryTime"
-              value={formData.deliveryTime}
-              onChange={handleChange}
-              placeholder="e.g., 2-3 days"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem'
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <input
-            type="checkbox"
-            name="isActive"
-            checked={formData.isActive}
-            onChange={handleChange}
-            id="isActive"
-            style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
-          />
-          <label htmlFor="isActive" style={{ cursor: 'pointer', fontWeight: 500 }}>
-            {t('productIsActive')}
-          </label>
-        </div>
-
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-          {isEditMode && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="btn"
-              style={{ 
-                background: '#dc2626', 
-                color: '#fff',
-                border: '1px solid #dc2626'
-              }}
-            >
-              {isDeleting ? t('deleting') : t('deleteProduct')}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => navigate('/shop')}
-            className="btn btn-outline"
-          >
-            {t('cancel')}
-          </button>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-          >
-            {loading ? t('saving') : isEditMode ? t('updateProduct') : t('createProduct')}
-          </button>
-        </div>
+        <FormActions 
+          isEditMode={isEditMode}
+          loading={loading}
+          isDeleting={isDeleting}
+          onDelete={handleDelete}
+        />
       </form>
     </div>
   )
