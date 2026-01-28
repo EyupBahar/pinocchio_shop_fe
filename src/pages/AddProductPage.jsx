@@ -77,16 +77,16 @@ export function AddProductPage() {
             setOriginalProduct(product)
           } else {
             console.warn('⚠️ No product data found for id:', id)
-            setError(`Product not found (ID: ${id})`)
+            setError(t('productNotFound').replace('{id}', id))
           }
         } catch (err) {
           console.error('❌ Error loading product:', err)
           if (err?.response?.status === 401) {
-            setError('Unauthorized. Please login to edit products.')
+            setError(t('unauthorizedEditProduct'))
           } else if (err?.response?.status === 404) {
-            setError(`Product not found (ID: ${id})`)
+            setError(t('productNotFound').replace('{id}', id))
           } else {
-            setError(`Failed to load product: ${err?.message || 'Unknown error'}`)
+            setError(t('failedToLoadProduct') + ': ' + (err?.message || 'Unknown error'))
           }
         } finally {
           setLoading(false)
@@ -94,7 +94,7 @@ export function AddProductPage() {
       }
       loadProduct()
     }
-  }, [id, isEditMode])
+  }, [id, isEditMode, t])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -134,17 +134,17 @@ export function AddProductPage() {
     setError('')
 
     if (!formData.title || !formData.description || !formData.image) {
-      setError('Please fill in all required fields (Title, Description, Image)')
+      setError(t('fillRequiredFields'))
       return
     }
 
     if (!formData.price || Number(formData.price) <= 0) {
-      setError('Price must be greater than 0')
+      setError(t('priceMustBeGreaterThanZero'))
       return
     }
 
     if (!formData.category.id || !formData.category.name) {
-      setError('Category ID and name are required')
+      setError(t('categoryIdAndNameRequired'))
       return
     }
 
@@ -182,17 +182,17 @@ export function AddProductPage() {
           const sizesArray = Array.isArray(sizesData) ? sizesData : []
           const selectedSize = sizesArray.find(s => s.id === formData.sizeId)
           
-          if (selectedSize) {
-            formattedSize = {
-              id: Number(selectedSize.id),
-              size: selectedSize.size || '',
-              sizeScaleType: selectedSize.sizeScaleType ? {
-                id: Number(selectedSize.sizeScaleType.id),
-                name: selectedSize.sizeScaleType.name || '',
-                code: selectedSize.sizeScaleType.code || ''
-              } : null,
-              sizeCode: selectedSize.sizeCode || ''
-            }
+        if (selectedSize) {
+          formattedSize = {
+            id: Number(selectedSize.id),
+            size: selectedSize.size || '',
+            sizeScaleType: selectedSize.sizeScaleType ? {
+              id: Number(selectedSize.sizeScaleType.id),
+              name: selectedSize.sizeScaleType.name || '',
+              code: selectedSize.sizeScaleType.code || ''
+            } : null,
+            sizeCode: selectedSize.sizeCode || ''
+          }
           }
         } catch (err) {
           console.error('❌ Error loading sizes for submit:', err)
@@ -226,7 +226,7 @@ export function AddProductPage() {
 
       if (isEditMode) {
         if (!initialFormData || !originalProduct) {
-          setError('Initial data not loaded')
+          setError(t('initialDataNotLoaded'))
           setLoading(false)
           return
         }
@@ -281,7 +281,7 @@ export function AddProductPage() {
         }
 
         if (Object.keys(changedFields).length === 0) {
-          setError('No changes detected')
+          setError(t('noChangesDetected'))
           setLoading(false)
           return
         }
@@ -293,11 +293,12 @@ export function AddProductPage() {
         })
       } else {
         try {
-          await productService.create(productData)
-          toast.success(t('productAddedSuccessfully'), {
-            position: 'top-right',
-            autoClose: 3000,
-          })
+        await productService.create(productData)
+        
+        toast.success(t('productAddedSuccessfully'), {
+          position: 'top-right',
+          autoClose: 3000,
+        })
           setTimeout(() => {
             navigate('/shop')
           }, 2000)
@@ -316,9 +317,9 @@ export function AddProductPage() {
                 position: 'top-right',
                 autoClose: 3000,
               })
-              setTimeout(() => {
-                navigate('/shop')
-              }, 2000)
+      setTimeout(() => {
+        navigate('/shop')
+      }, 2000)
               return
             } catch (altErr) {
               console.error('❌ Alternative format also failed:', altErr)
@@ -368,7 +369,7 @@ export function AddProductPage() {
   }
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this product?')) {
+    if (!window.confirm(t('confirmDeleteProduct'))) {
       return
     }
 

@@ -316,3 +316,61 @@
   border: 1px solid #dc2626;
 }
 
+/* Multilingual Section Styles */
+.language-tabs {
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.language-tabs-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.language-tab {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-weight: 400;
+  transition: all 0.2s;
+}
+
+.language-tab.active {
+  background: #3b82f6;
+  color: #fff;
+  border-bottom-color: #3b82f6;
+  font-weight: 600;
+}
+
+.translations-summary {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.translations-grid {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.translation-status {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.translation-status.complete {
+  background: #d1fae5;
+}
+
+.translation-status.incomplete {
+  background: #fee2e2;
+}
+

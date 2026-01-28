@@ -33,7 +33,7 @@ export function ImageSection({ formData, handleChange, setFormData }) {
           name="image"
           value={formData.image}
           onChange={handleChange}
-          placeholder="https://example.com/image.jpg"
+          placeholder={t('imageUrlPlaceholder')}
           className="main-image-input"
           required
         />
@@ -41,7 +41,7 @@ export function ImageSection({ formData, handleChange, setFormData }) {
           <div className="image-preview-container">
             <img 
               src={formData.image} 
-              alt="Preview" 
+              alt={t('imagePreview')} 
               className="image-preview"
               onError={(e) => {
                 e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found'
@@ -56,13 +56,13 @@ export function ImageSection({ formData, handleChange, setFormData }) {
           {t('additionalImages')}
         </label>
         <div className="additional-images-input-container">
-          <input
-            type="text"
-            value={imageInput}
-            onChange={(e) => setImageInput(e.target.value)}
-            placeholder="https://example.com/image.jpg"
-            className="additional-images-input"
-          />
+            <input
+              type="text"
+              value={imageInput}
+              onChange={(e) => setImageInput(e.target.value)}
+              placeholder={t('imageUrlPlaceholder')}
+              className="additional-images-input"
+            />
           <button
             type="button"
             onClick={handleAddImage}

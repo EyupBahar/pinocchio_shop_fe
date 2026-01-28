@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import { sizeService } from '../../services/sizeService.js'
+import { useI18n } from '../../contexts/I18nContext.jsx'
 
 export function SizeSection({ formData, setFormData, setError }) {
+  const { t } = useI18n()
   const [sizes, setSizes] = useState([])
   const [sizeScaleTypes, setSizeScaleTypes] = useState([])
   const [newSizeScaleTypeInput, setNewSizeScaleTypeInput] = useState('')
@@ -44,7 +46,7 @@ export function SizeSection({ formData, setFormData, setError }) {
 
   const handleAddNewSizeScaleType = async () => {
     if (!newSizeScaleTypeInput.trim()) {
-      setError('Size scale type is required')
+      setError(t('sizeScaleTypeRequired'))
       return
     }
 
@@ -79,7 +81,7 @@ export function SizeSection({ formData, setFormData, setError }) {
         setSizeScaleTypes(Array.from(scaleTypesMap.values()))
         
         setNewSizeScaleTypeInput('')
-        toast.success('Size scale type added successfully', {
+        toast.success(t('sizeScaleTypeAddedSuccessfully'), {
           position: 'top-right',
           autoClose: 3000,
         })
@@ -89,9 +91,9 @@ export function SizeSection({ formData, setFormData, setError }) {
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.error || 
                           err.message || 
-                          'Failed to add size scale type'
+                          t('failedToAddSizeScaleType')
       setError(errorMessage)
-      toast.error('Failed to add size scale type: ' + errorMessage, {
+      toast.error(t('failedToAddSizeScaleType') + ': ' + errorMessage, {
         position: 'top-right',
         autoClose: 5000,
       })
@@ -102,7 +104,7 @@ export function SizeSection({ formData, setFormData, setError }) {
 
   const handleAddNewSize = async () => {
     if (!newSizeScaleTypeForSize.trim() || !newSizeAmountInput.trim()) {
-      setError('Both scale type and amount are required')
+      setError(t('scaleTypeAndAmountRequired'))
       return
     }
 
@@ -141,7 +143,7 @@ export function SizeSection({ formData, setFormData, setError }) {
       }
       
       if (!scaleTypeId) {
-        setError('Scale type ID is required')
+        setError(t('scaleTypeIdRequired'))
         setAddingSize(false)
         return
       }
@@ -177,7 +179,7 @@ export function SizeSection({ formData, setFormData, setError }) {
         }))
         setNewSizeScaleTypeForSize('')
         setNewSizeAmountInput('')
-        toast.success('Size added successfully', {
+        toast.success(t('sizeAddedSuccessfully'), {
           position: 'top-right',
           autoClose: 3000,
         })
@@ -187,9 +189,9 @@ export function SizeSection({ formData, setFormData, setError }) {
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.error || 
                           err.message || 
-                          'Failed to add size'
+                          t('failedToAddSize')
       setError(errorMessage)
-      toast.error('Failed to add size: ' + errorMessage, {
+      toast.error(t('failedToAddSize') + ': ' + errorMessage, {
         position: 'top-right',
         autoClose: 5000,
       })
@@ -201,20 +203,20 @@ export function SizeSection({ formData, setFormData, setError }) {
   return (
     <div className="section-container">
       <label className="section-label">
-        Size (Optional)
+        {t('sizeOptional')}
       </label>
       
       {/* Size Select Box */}
       <div className="size-subsection">
         <label className="size-section-label">
-          Select Size
+          {t('selectSize')}
         </label>
         <select
           value={formData.sizeId || ''}
           onChange={(e) => handleSizeChange(e.target.value)}
           className="form-select"
         >
-          <option value="">No size selected</option>
+          <option value="">{t('noSizeSelected')}</option>
           {sizes.map((size) => (
             <option key={size.id} value={size.id}>
               {size.size}
@@ -226,14 +228,14 @@ export function SizeSection({ formData, setFormData, setError }) {
       {/* Add New Size Scale Type */}
       <div className="size-subsection">
         <label className="size-section-label">
-          Add New Size Scale Type
+          {t('addNewSizeScaleType')}
         </label>
         <div className="size-input-container">
           <input
             type="text"
             value={newSizeScaleTypeInput}
             onChange={(e) => setNewSizeScaleTypeInput(e.target.value)}
-            placeholder="Enter scale type (e.g., ml, gr, kg)"
+            placeholder={t('enterScaleType')}
             className="size-input"
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
@@ -248,7 +250,7 @@ export function SizeSection({ formData, setFormData, setError }) {
             disabled={addingSizeScaleType || !newSizeScaleTypeInput.trim()}
             className="btn btn-nowrap"
           >
-            {addingSizeScaleType ? 'Adding...' : 'Add Scale Type'}
+            {addingSizeScaleType ? t('adding') : t('addScaleType')}
           </button>
         </div>
       </div>
@@ -256,7 +258,7 @@ export function SizeSection({ formData, setFormData, setError }) {
       {/* Add New Size */}
       <div className="size-subsection">
         <label className="size-section-label">
-          Add New Size
+          {t('addNewSize')}
         </label>
         <div className="size-grid">
           <select
@@ -264,7 +266,7 @@ export function SizeSection({ formData, setFormData, setError }) {
             onChange={(e) => setNewSizeScaleTypeForSize(e.target.value)}
             className="form-select"
           >
-            <option value="">Select scale type</option>
+            <option value="">{t('selectScaleType')}</option>
             {sizeScaleTypes.map((scaleType) => (
               <option key={scaleType.id} value={scaleType.name}>
                 {scaleType.name}
@@ -275,7 +277,7 @@ export function SizeSection({ formData, setFormData, setError }) {
             type="text"
             value={newSizeAmountInput}
             onChange={(e) => setNewSizeAmountInput(e.target.value)}
-            placeholder="Amount (e.g., 200, 300)"
+            placeholder={t('amountPlaceholder')}
             className="form-input"
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
@@ -291,7 +293,7 @@ export function SizeSection({ formData, setFormData, setError }) {
           disabled={addingSize || !newSizeScaleTypeForSize.trim() || !newSizeAmountInput.trim()}
           className="btn btn-full-width"
         >
-          {addingSize ? 'Adding...' : 'Add Size'}
+          {addingSize ? t('adding') : t('addSize')}
         </button>
       </div>
     </div>

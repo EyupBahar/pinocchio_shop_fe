@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 import { productFeatureService } from '../../services/productFeatureService.js'
+import { useI18n } from '../../contexts/I18nContext.jsx'
 
 export function FeaturesSection({ formData, setFormData, setError }) {
+  const { t } = useI18n()
   const [featureTypeInput, setFeatureTypeInput] = useState('')
   const [featureTitleInput, setFeatureTitleInput] = useState('')
   const [featureDescriptionInput, setFeatureDescriptionInput] = useState('')
@@ -12,8 +14,8 @@ export function FeaturesSection({ formData, setFormData, setError }) {
 
   const handleAddFeature = async () => {
     if (!featureTypeInput.trim()) {
-      setError('Feature type is required')
-      toast.error('Feature type is required', {
+      setError(t('featureTypeRequired'))
+      toast.error(t('featureTypeRequired'), {
         position: 'top-right',
         autoClose: 3000,
       })
@@ -51,7 +53,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
         setFeatureTitleInput('')
         setFeatureDescriptionInput('')
         setCurrentFeatureIndex(null)
-        toast.success('Feature added successfully', {
+        toast.success(t('featureAddedSuccessfully'), {
           position: 'top-right',
           autoClose: 3000,
         })
@@ -61,9 +63,9 @@ export function FeaturesSection({ formData, setFormData, setError }) {
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.error || 
                           err.message || 
-                          'Failed to add feature'
+                          t('failedToAddFeature')
       setError(errorMessage)
-      toast.error('Failed to add feature: ' + errorMessage, {
+      toast.error(t('failedToAddFeature') + ': ' + errorMessage, {
         position: 'top-right',
         autoClose: 5000,
       })
@@ -83,7 +85,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
   const handleUpdateFeature = () => {
     if (currentFeatureIndex === null) return
     if (!featureTypeInput.trim() || !featureTitleInput.trim()) {
-      setError('Feature type and title are required')
+      setError(t('featureTypeAndTitleRequired'))
       return
     }
 
@@ -120,8 +122,8 @@ export function FeaturesSection({ formData, setFormData, setError }) {
 
     const feature = formData.features[featureIndex]
     if (!feature || !feature.id) {
-      setError('Feature ID is required. Please add the feature first.')
-      toast.error('Feature ID is required', {
+      setError(t('featureIdRequired'))
+      toast.error(t('featureIdRequired'), {
         position: 'top-right',
         autoClose: 3000,
       })
@@ -165,7 +167,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
           [featureIndex]: ''
         }))
         
-        toast.success('Substance added successfully', {
+        toast.success(t('substanceAddedSuccessfully'), {
           position: 'top-right',
           autoClose: 3000,
         })
@@ -175,9 +177,9 @@ export function FeaturesSection({ formData, setFormData, setError }) {
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.error || 
                           err.message || 
-                          'Failed to add substance'
+                          t('failedToAddSubstance')
       setError(errorMessage)
-      toast.error('Failed to add substance: ' + errorMessage, {
+      toast.error(t('failedToAddSubstance') + ': ' + errorMessage, {
         position: 'top-right',
         autoClose: 5000,
       })
@@ -201,7 +203,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
   return (
     <div className="section-container">
       <label className="section-label">
-        Features
+        {t('features')}
       </label>
       
       {/* Add/Edit Feature Form */}
@@ -211,21 +213,21 @@ export function FeaturesSection({ formData, setFormData, setError }) {
             type="text"
             value={featureTypeInput}
             onChange={(e) => setFeatureTypeInput(e.target.value)}
-            placeholder="Feature Type (e.g., Gönderim Bilgileri)"
+            placeholder={t('featureTypePlaceholder')}
             className="feature-input"
           />
           <input
             type="text"
             value={featureTitleInput}
             onChange={(e) => setFeatureTitleInput(e.target.value)}
-            placeholder="Feature Title"
+            placeholder={t('featureTitlePlaceholder')}
             className="feature-input"
           />
         </div>
         <textarea
           value={featureDescriptionInput}
           onChange={(e) => setFeatureDescriptionInput(e.target.value)}
-          placeholder="Feature Description"
+          placeholder={t('featureDescriptionPlaceholder')}
           rows="2"
           className="feature-textarea"
         />
@@ -236,7 +238,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
             disabled={addingFeature}
             className="btn"
           >
-            {addingFeature ? 'Adding...' : 'Add Feature'}
+            {addingFeature ? t('adding') : t('addFeature')}
           </button>
         ) : (
           <div className="feature-buttons">
@@ -245,7 +247,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
               onClick={handleUpdateFeature}
               className="btn"
             >
-              Update Feature
+              {t('updateFeature')}
             </button>
             <button
               type="button"
@@ -257,7 +259,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
               }}
               className="btn btn-outline"
             >
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         )}
@@ -277,7 +279,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
                 onClick={() => handleEditFeature(featureIndex)}
                 className="btn btn-outline btn-small"
               >
-                Edit
+                {t('edit')}
               </button>
               <button
                 type="button"
@@ -299,7 +301,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
                   ...prev,
                   [featureIndex]: e.target.value
                 }))}
-                placeholder="Add substance description"
+                placeholder={t('addSubstancePlaceholder')}
                 className="substance-input"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
@@ -313,7 +315,7 @@ export function FeaturesSection({ formData, setFormData, setError }) {
                 onClick={() => handleAddSubstance(featureIndex)}
                 className="btn btn-substance"
               >
-                Add
+                {t('addSubstance')}
               </button>
             </div>
             {feature.substances.map((substance, substanceIndex) => (
